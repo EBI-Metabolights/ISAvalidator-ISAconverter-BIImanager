@@ -10,6 +10,6 @@ mvn $MVNOPTS -Ptools,build_cmd_deps -Dmaven.test.skip=true clean package
 # This is necessary due to some wrong packaging in one of our dependencies
 # Final jar won't work unless you remove this silly file
 #
-zip target/import_layer_deps.jar -d '\*.class'
+zip target/import_layer_deps_1.3.2.1.jar -d '\*.class'
 
 mvn $MVNOPTS -Ptools,build_cmd -Dmaven.test.skip=true package

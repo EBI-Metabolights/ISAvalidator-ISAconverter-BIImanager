@@ -77,10 +77,18 @@ public abstract class AbstractGUIInvokerWithStudySelection extends AbstractGUIIn
     public AbstractGUIInvokerWithStudySelection() {
         initEntityManager();
     }
-
+    public AbstractGUIInvokerWithStudySelection(EntityManager entityManager){
+    	this.entityManager = entityManager;
+    	// In case it is null...
+    	initEntityManager();
+    }
 
     protected void initEntityManager() {
-        hibernateProperties = AbstractImportLayerShellCommand.getHibernateProperties();
+        
+    	//Lazy initialize
+    	if (this.entityManager !=null) return;
+    	
+    	hibernateProperties = AbstractImportLayerShellCommand.getHibernateProperties();
         hibernateProperties.setProperty("hibernate.search.indexing_strategy", "event");
         // We assume this, since we are unloading something that is supposed to already exist (including during tests).
         hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
@@ -89,7 +97,6 @@ public abstract class AbstractGUIInvokerWithStudySelection extends AbstractGUIIn
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("BIIEntityManager", hibernateProperties);
         this.entityManager = entityManagerFactory.createEntityManager();
     }
-
 
     /**
      * Gets the retrievedStudies which were previously downloaded by {@link #loadSubmission(String)} or {@link #loadStudiesFromDB()}
@@ -148,6 +155,9 @@ public abstract class AbstractGUIInvokerWithStudySelection extends AbstractGUIIn
             vlog.error(e.getMessage(), e);
             return GUIInvokerResult.ERROR;
         }
+    }
+    public EntityManager getCurrentEntityManager() {
+        return entityManager;
     }
 
 }

@@ -81,6 +81,10 @@ public class UserManagementControl {
         createEntityManager();
     }
 
+    public UserManagementControl (EntityManager entityManager){
+    	this.entityManager = entityManager;
+    	createEntityManager();
+    }
     /**
      * This method is now always invoked before processing the permission change form. We recreate the manager because
      * otherwise bad things happen, such as objects from the study persistence that are believed to be commited (they
@@ -88,12 +92,16 @@ public class UserManagementControl {
      * invokes {@link #createUserManagement()} and {@link #getUsers()} (which caches the users).
      */
     public void createEntityManager() {
-        Properties hibProps = AbstractImportLayerShellCommand.getHibernateProperties();
-        hibProps.setProperty("hibernate.search.indexing_strategy", "manual");
-
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("BIIEntityManager", hibProps);
-        this.entityManager = entityManagerFactory.createEntityManager();
-
+        
+    	// Lazy init
+    	if (this.entityManager != null){
+	    	Properties hibProps = AbstractImportLayerShellCommand.getHibernateProperties();
+	        hibProps.setProperty("hibernate.search.indexing_strategy", "manual");
+	
+	        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("BIIEntityManager", hibProps);
+	        this.entityManager = entityManagerFactory.createEntityManager();
+    	}
+    	
         createUserManagement();
         getUsers();
     }

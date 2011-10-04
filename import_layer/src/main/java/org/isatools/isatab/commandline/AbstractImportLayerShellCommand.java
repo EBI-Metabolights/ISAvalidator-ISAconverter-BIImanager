@@ -231,28 +231,47 @@ public class AbstractImportLayerShellCommand {
      * @return the config path, as provided by the property {@link #PROPERTY_NAME_CONFIG_PATH}. If the property
      *         is null, returns the value returned by the user.dir property + "/config/"
      */
-    public static String getConfigPath() {
+    public static String getDBConfigPath() {
         if (_configPath != null) {
             return _configPath;
         }
 
-        _configPath = StringUtils.trimToEmpty(
-                System.getProperty(PROPERTY_NAME_CONFIG_PATH, System.getProperty("user.dir") + "/config/")
-        );
+        
+        //pconesa: Try to look first in the root folder
+        _configPath =AbstractImportLayerShellCommand.class.getClassLoader().getResource("").getPath() + "config/";
+        
+        System.out.println("Initial config path is :" + _configPath);
+        
+        
+        //If this path do not exists...
+        if (!new File(_configPath).exists()){
 
+        	//...then use system properties.
+            _configPath = StringUtils.trimToEmpty(
+                    System.getProperty(PROPERTY_NAME_CONFIG_PATH, System.getProperty("user.dir") + "/config/")
+            );
+
+        }
+        
+        
         if (_configPath.length() > 0 && !_configPath.endsWith("/")) {
             _configPath += "/";
         }
+        
+        System.out.println("Final config path is :" + _configPath);
         return _configPath;
     }
-
+    public static void setDBConfigPath(String newConfigPath){
+    	System.out.println("Config Path mannualy setted: " + newConfigPath);
+    	_configPath = newConfigPath;
+    }
 
     /**
      * Finds the hibernate.properties file in the directory returned by {@link #getConfigPath()}. This file
      * <b>must</b> exists, becuase we need some DB configuration as a minimum for using tools such as the Loader.
      */
     public static Properties getHibernateProperties() {
-        String cfgPath = getConfigPath(),
+        String cfgPath = getDBConfigPath(),
                 hibCfgPath = cfgPath + "hibernate.properties";
 
         try {
@@ -278,7 +297,7 @@ public class AbstractImportLayerShellCommand {
         try {
             // Local configuration
             //
-            String configPath = getConfigPath();
+            String configPath = getDBConfigPath();
             String configFilePath = configPath + "config.properties";
             File propFile = new File(configFilePath);
             if (propFile.exists()) {
@@ -315,7 +334,7 @@ public class AbstractImportLayerShellCommand {
         try {
             DataLocationManager dataLocationMgr;
 
-            String mappingFilePath = AbstractImportLayerShellCommand.getConfigPath() +
+            String mappingFilePath = AbstractImportLayerShellCommand.getDBConfigPath() +
                     DataSourceLoader.DEFAULT_FILE_NAME;
 
             File locationFile = new File(mappingFilePath);

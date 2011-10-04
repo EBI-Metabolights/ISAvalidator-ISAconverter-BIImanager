@@ -75,7 +75,7 @@ public class ISAConfigurationSet {
             NS_CFG = "http://www.ebi.ac.uk/bii/isatab_configuration#";
     // "http://www.w3.org/2005/02/xpath-functions/#";
 
-    private static String configPath = AbstractImportLayerShellCommand.getConfigPath() + "/isa_configurator";
+    private static String configPath = AbstractImportLayerShellCommand.getDBConfigPath() + "/isa_configurator";
 
     private Map<String, IsaTabConfigFileType> _isaConfigFiles;
     private Map<String, IsaTabConfigurationType> _isaConfigs;

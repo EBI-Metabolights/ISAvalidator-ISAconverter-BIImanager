@@ -70,11 +70,18 @@ import java.util.Set;
 public class GUIISATABUnloader extends AbstractGUIInvokerWithStudySelection {
 
     public GUIISATABUnloader() {
-        super();
+        // Here (inside the constructor) initiEntityManager is called once ...
+    	super();
         AbstractImportLayerShellCommand.setupLog4JPath(System.getProperty("user.dir") + "/unloader.log");
-        initEntityManager();
+        
+        // Why it is called a second time?
+        // initEntityManager();
     }
-
+    public GUIISATABUnloader (EntityManager entityManager){
+    	super(entityManager);
+    	AbstractImportLayerShellCommand.setupLog4JPath(System.getProperty("user.dir") + "/unloader.log");
+    	
+    }
 
     /**
      * Unloads the parameter studies
@@ -113,10 +120,6 @@ public class GUIISATABUnloader extends AbstractGUIInvokerWithStudySelection {
             vlog.error(e.getMessage(), e);
             return GUIInvokerResult.ERROR;
         }
-    }
-
-    public EntityManager getCurrentEntityManager() {
-        return entityManager;
     }
 
 }

@@ -51,9 +51,12 @@ package org.isatools.isatab.manager;
 import org.apache.log4j.Logger;
 import org.isatools.isatab.gui_invokers.*;
 import org.isatools.isatab.isaconfigurator.ISAConfigurationSet;
+import org.isatools.isatab.commandline.AbstractImportLayerShellCommand;
 import uk.ac.ebi.bioinvindex.model.Study;
 import uk.ac.ebi.bioinvindex.model.VisibilityStatus;
 import uk.ac.ebi.bioinvindex.model.security.User;
+import org.isatools.tablib.utils.logging.TabLoggingEventWrapper;
+
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -63,34 +66,82 @@ import java.util.*;
 public class SimpleManager {
 
     private static Logger log = Logger.getLogger(SimpleManager.class.getName());
-
+    
+    // pconesa add status property
+    private VisibilityStatus status = VisibilityStatus.PUBLIC;
+    // pconesa add log support
+    private List<TabLoggingEventWrapper> lastLog;
+    
     private EntityManager sharedEntityManager;
 
     public SimpleManager() {
     }
+    public SimpleManager(String DBConfigPath){
+    	//Set the config path for the hibernate file and others...
+    	AbstractImportLayerShellCommand.setDBConfigPath(DBConfigPath);
+    }
+    
+    // pconesa add status property
+    public VisibilityStatus getStatus(){
+    	return status;
+    }
+    public void setStatus(VisibilityStatus status){
+    	this.status = status;
+    }
+    public String getDBConfigPath(){
+    	return AbstractImportLayerShellCommand.getDBConfigPath();
+    }
+    /**
+     * Sets the config folder where the hibernate and other config files must be located
+     * @param DBConfigPath
+     * @return
+     */
+    public boolean setDBConfigPath(String DBConfigPath){
+  
+        if (new File(DBConfigPath).exists()) {
+            AbstractImportLayerShellCommand.setDBConfigPath(DBConfigPath);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public EntityManager getEntityManager(){
+    	return sharedEntityManager;
+    }
 
-    public void loadISAtab(String isatabFile, String configurationDirectory, String userName) {
+    // pconesa Load isatab file with a status
+    public GUIInvokerResult loadISAtab(String isatabFile, String userName, VisibilityStatus status) throws Exception {
+    	this.status = status;
+    	return loadISAtab(isatabFile, userName);
+    }
+
+    public GUIInvokerResult loadISAtab(String isatabFile, String configurationDirectory, String userName) throws Exception {
 
         if (loadConfiguration(configurationDirectory)) {
-            loadISAtab(isatabFile, userName);
+            return loadISAtab(isatabFile, userName);
         } else {
             log.info("No configuration directory found...");
+        	return GUIInvokerResult.WARNING;
         }
 
     }
 
-    public void loadISAtab(String isatabFile, String userName) {
+    public GUIInvokerResult loadISAtab(String isatabFile, String userName) throws Exception {
 
         GUIISATABValidator isatabValidator = new GUIISATABValidator();
 
         GUIInvokerResult validationResult = isatabValidator.validate(isatabFile);
+        
         if (validationResult == GUIInvokerResult.SUCCESS) {
             GUIISATABLoader loader = new GUIISATABLoader();
             log.info("Validation successful, now proceeding to load ISAtab into the BII...");
 
             // even if the shared entitymanager is null, it will be generated in anycase by the loader code.
             GUIInvokerResult loadingResult = loader.persist(isatabValidator.getStore(), isatabFile, sharedEntityManager);
-
+            
+            // Set the last log with log info
+            lastLog = loader.getLog();
+            
             if (loadingResult == GUIInvokerResult.SUCCESS) {
 
                 // using this call, we can get all objects of type Study from the BIIObjectStore.
@@ -102,13 +153,21 @@ public class SimpleManager {
                     accessions.add(study.getAcc());
                 }
 
-                changeStudyPermissions(VisibilityStatus.PUBLIC, userName,
+                // pconesa add status property
+                changeStudyPermissions(status, userName,
                         accessions.toArray(new String[accessions.size()]));
 
                 log.info("Loading completed and reindexing performed");
             }
+            
+            return loadingResult;
         } else {
             log.error("Loading failed. See log for details.");
+         
+            // pconesa Set the last log with log info
+            lastLog = isatabValidator.getLog();
+
+            return validationResult;
         }
 
     }
@@ -119,7 +178,7 @@ public class SimpleManager {
      * @param isatabFile - directory for ISAtab to be reloaded
      * @param userName - username of submitter to be assigned as the owner of the submission
      */
-    public void reloadISAtab(String studyId, String isatabFile, String configurationDirectory, String userName) {
+    public void reloadISAtab(String studyId, String isatabFile, String configurationDirectory, String userName) throws Exception{
 
         loadConfiguration(configurationDirectory);
 
@@ -133,16 +192,20 @@ public class SimpleManager {
      * @param isatabFile - directory for ISAtab to be reloaded
      * @param userName - username of submitter to be assigned as the owner of the submission
      */
-    public void reloadISAtab(String studyId, String isatabFile, String userName) {
+    public GUIInvokerResult reloadISAtab(String studyId, String isatabFile, String userName) throws Exception{
 
-        // unload and keep the entity manager.
-        sharedEntityManager = unLoadISAtab(Collections.singleton(studyId));
+        // Get the result of the unload, after this call we should have the lastlog and an entity manager.
+    	GUIInvokerResult result = unLoadISAtab(Collections.singleton(studyId));
 
-        if(sharedEntityManager != null) {
+    	if(result == GUIInvokerResult.SUCCESS) {
             // continue
-            loadISAtab(isatabFile, userName);
+            result = loadISAtab(isatabFile, userName);
+        }else{
+        	//Nothing...it has been logged inside unLoadISATab method
+        	
         }
-
+    	
+    	return result;
     }
 
     protected Collection<Study> loadStudiesFromDatabase() {
@@ -156,35 +219,79 @@ public class SimpleManager {
         }
     }
 
-    public void reindexDatabase() {
-        GUIBIIReindex reindexer = new GUIBIIReindex();
+    public GUIInvokerResult reindexDatabase() {
+        
+    	GUIBIIReindex reindexer = new GUIBIIReindex(sharedEntityManager);
+        
+        log.info("Reindexing database");
 
-        System.out.println("Reindexing database");
+        GUIInvokerResult result = reindexer.reindexDatabase();
 
-        reindexer.reindexDatabase();
-
-        System.out.println("Finished reindexing database");
+        if (result == GUIInvokerResult.SUCCESS) {
+            log.info("Successfully reindexed database...");
+        } else {
+            log.info("Reindexing has failed. Please see log for errors");
+        }
+        
+        // Set the last log with log info
+        lastLog = reindexer.getLog();
+        
+        return result;
+        
     }
 
-    public void reindexStudies(Set<String> studyIds) {
-        GUIBIIReindex reindexer = new GUIBIIReindex();
+    public GUIInvokerResult reindexStudies(Set<String> studyIds) {
+        GUIBIIReindex reindexer = new GUIBIIReindex(sharedEntityManager);
 
-        if (reindexer.reindexSelectedStudies(studyIds) == GUIInvokerResult.SUCCESS) {
+        GUIInvokerResult result = reindexer.reindexSelectedStudies(studyIds);
+        
+        if ( result == GUIInvokerResult.SUCCESS) {
             log.info("Successfully reindexed selected studies...");
         } else {
             log.info("Reindexing has failed. Please see log for errors");
         }
+        
+        // Set the last log with log info
+        lastLog = reindexer.getLog();
+        
+        return result;
     }
 
+    public GUIInvokerResult reindexStudies(String Studieslist) {
+    	
+    	return reindexStudies(Study2Set(Studieslist));
+    }
+    
+    /**
+     * pconesa
+     * Validates an ISATab File (zip)
+     * @param isatabFile
+     * @throws Exception
+     */
+    public GUIInvokerResult validateISAtab (String isatabFile) {
+    	
+    	// Instantiate the validator
+        GUIISATABValidator isatabValidator = new GUIISATABValidator();
+        
+        // Validate it
+        GUIInvokerResult result = isatabValidator.validate(isatabFile);
+        
+        // Set the last log with log info
+        lastLog = isatabValidator.getLog();
+        
+        return result;
+    }
+    
     /**
      * For given Studies, by their IDs, modifies their visibility
      *
      * @param status     - @see VisibilityStatus
      * @param studyOwner - user to be assigned as an 'owner' of this Study.
      * @param studyIDs   - e.g. "BII-S-1", "BII-S-2"
+     * @throws Exception
      */
-    public void changeStudyPermissions(VisibilityStatus status, String studyOwner, String[] studyIDs) {
-        UserManagementControl umControl = new UserManagementControl();
+    public void changeStudyPermissions(VisibilityStatus status, String studyOwner, String[] studyIDs) throws Exception{
+        UserManagementControl umControl = new UserManagementControl(sharedEntityManager);
         log.info("Attempting to change study permissions");
         try {
 
@@ -210,31 +317,45 @@ public class SimpleManager {
 
         } catch (final Exception e) {
             log.info("A problem occurred when setting permissions");
+            
+            throw e;
         }
     }
 
 
-    public EntityManager unLoadISAtab(Set<String> toUnload) {
+    //public EntityManager unLoadISAtab(Set<String> toUnload) {
+    public GUIInvokerResult unLoadISAtab(Set<String> toUnload) {
 
-        GUIISATABUnloader unloaderUtil = new GUIISATABUnloader();
+        GUIISATABUnloader unloaderUtil = new GUIISATABUnloader(sharedEntityManager);
 
         log.info(toUnload.size() > 1 ? "unloading studies..." : "unloading study");
 
         GUIInvokerResult result = unloaderUtil.unload(toUnload);
 
+        //Set the last log
+        lastLog = unloaderUtil.getLog();
+        
         if (result == GUIInvokerResult.SUCCESS) {
             // fire updates back to the listener(s)
             log.info("Unloading complete. Unloaded " + toUnload.size() + " studies");
-            return unloaderUtil.getCurrentEntityManager();
+            //unloaderUtil.getCurrentEntityManager();
+            sharedEntityManager = unloaderUtil.getCurrentEntityManager();
+            
         } else {
-            log.info("Some problems were encountered when loading");
-            return null;
+            log.info("Some problems were encountered when unloading: " + toUnload.toString());
+            // return null;
         }
 
-
+        return result;
 
     }
 
+    public List<TabLoggingEventWrapper> getLastLog() {
+    	return lastLog;
+    }
+    public GUIInvokerResult unLoadISAtab(String Studylist){
+    	return unLoadISAtab(Study2Set(Studylist));
+    }
     private boolean loadConfiguration(String configuration) {
         if (new File(configuration).exists()) {
             ISAConfigurationSet.setConfigPath(configuration);
@@ -244,7 +365,19 @@ public class SimpleManager {
         }
     }
 
-    public static void main(String[] args) {
+    /**
+     * 
+     * @param Studieslist: string with study ids separated by pipes "|". Use just one studyid if needed.
+     * @return Set to be used in other methods that require a Set with studies
+     */
+    public static Set<String> Study2Set(String Studieslist){
+    	Set<String> studies = new HashSet<String>();
+        studies.addAll(Arrays.asList(Studieslist.split("\\|")));
+        
+        return studies;
+    }
+
+    public static void main(String[] args) throws Exception{
         SimpleManager manager = new SimpleManager();
 
         if (args[0].equals("load")) {

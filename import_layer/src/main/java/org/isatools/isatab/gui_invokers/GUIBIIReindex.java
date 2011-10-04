@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
 /**
  * GUIBIIReindex
  *
@@ -26,6 +28,10 @@ public class GUIBIIReindex extends AbstractGUIInvokerWithStudySelection {
         initEntityManager();
     }
 
+    public GUIBIIReindex(EntityManager entityManager){
+    	super(entityManager);
+    	AbstractImportLayerShellCommand.setupLog4JPath(System.getProperty("user.dir") + "/reindexer.log");
+    }
 
     public GUIInvokerResult reindexSelectedStudies(Set<String> studyIds) {
         try {

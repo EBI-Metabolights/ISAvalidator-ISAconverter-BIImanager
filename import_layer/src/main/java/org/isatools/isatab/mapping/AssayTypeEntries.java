@@ -115,7 +115,7 @@ public class AssayTypeEntries {
         }
 
         try {
-            String mappingFilePath = AbstractImportLayerShellCommand.getConfigPath() + ASSAY_TYPE_ENTRIES_FILE_NAME;
+            String mappingFilePath = AbstractImportLayerShellCommand.getDBConfigPath() + ASSAY_TYPE_ENTRIES_FILE_NAME;
             File mappingFile = new File(mappingFilePath);
 
             InputStream instream = mappingFile.canRead()
