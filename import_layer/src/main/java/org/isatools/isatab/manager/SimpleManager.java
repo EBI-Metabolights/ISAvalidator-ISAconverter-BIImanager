@@ -108,6 +108,9 @@ public class SimpleManager {
     public EntityManager getEntityManager(){
     	return sharedEntityManager;
     }
+    public void setEntityManager(EntityManager em){
+    	sharedEntityManager = em;
+    }
 
     // pconesa Load isatab file with a status
     public GUIInvokerResult loadISAtab(String isatabFile, String userName, VisibilityStatus status) throws Exception {
@@ -129,7 +132,7 @@ public class SimpleManager {
     public GUIInvokerResult loadISAtab(String isatabFile, String userName) throws Exception {
 
         GUIISATABValidator isatabValidator = new GUIISATABValidator();
-
+        
         GUIInvokerResult validationResult = isatabValidator.validate(isatabFile);
         
         if (validationResult == GUIInvokerResult.SUCCESS) {
@@ -142,7 +145,7 @@ public class SimpleManager {
             // Set the last log with log info
             lastLog = loader.getLog();
             
-            if (loadingResult == GUIInvokerResult.SUCCESS) {
+	        if (loadingResult == GUIInvokerResult.SUCCESS) {
 
                 // using this call, we can get all objects of type Study from the BIIObjectStore.
                 Collection<Study> studies = isatabValidator.getStore().valuesOfType(Study.class);
