@@ -342,7 +342,9 @@ public class SimpleManager {
             // fire updates back to the listener(s)
             log.info("Unloading complete. Unloaded " + toUnload.size() + " studies");
             //unloaderUtil.getCurrentEntityManager();
-            sharedEntityManager = unloaderUtil.getCurrentEntityManager();
+            // Store used entity manager for later use.
+            // Got: "Transaction already active"
+            //sharedEntityManager = unloaderUtil.getCurrentEntityManager();
             
         } else {
             log.info("Some problems were encountered when unloading: " + toUnload.toString());
