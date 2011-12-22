@@ -94,7 +94,7 @@ public class UserManagementControl {
     public void createEntityManager() {
         
     	// Lazy init
-    	if (this.entityManager != null){
+    	if (this.entityManager == null){
 	    	Properties hibProps = AbstractImportLayerShellCommand.getHibernateProperties();
 	        hibProps.setProperty("hibernate.search.indexing_strategy", "manual");
 	
