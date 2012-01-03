@@ -129,10 +129,48 @@ public class SimpleManager {
 
     }
 
+    /**
+     * pconesa
+     * Validates an ISATab File (zip)
+     * @param isatabFile
+     * @throws Exception
+     */
+    public GUIInvokerResult validateISAtab (String isatabFile) {
+    	
+    	// Instantiate the validator
+        GUIISATABValidator isatabValidator = new GUIISATABValidator();
+        
+        // Validate it
+        GUIInvokerResult result = isatabValidator.validate(isatabFile);
+        
+        // Set the last log with log info
+        lastLog = isatabValidator.getLog();
+        
+        return result;
+    }
+    
+    
+    public void validateISAtab(String isatabFile, String configurationDirectory) {
+        if (loadConfiguration(configurationDirectory)) {
+            GUIISATABValidator isatabValidator = new GUIISATABValidator();
+
+            GUIInvokerResult validationResult = isatabValidator.validate(isatabFile);
+            if (validationResult == GUIInvokerResult.SUCCESS) {
+                System.out.println("Validation successful!");
+                log.info("Validation successful...");
+            } else {
+                System.err.println("Validation unsuccessful...");
+                log.error("Validation unsuccessful...");
+            }
+        } else {
+            log.info("No configuration directory found...");
+        }
+    }
+
     public GUIInvokerResult loadISAtab(String isatabFile, String userName) throws Exception {
 
         GUIISATABValidator isatabValidator = new GUIISATABValidator();
-        
+
         GUIInvokerResult validationResult = isatabValidator.validate(isatabFile);
         
         if (validationResult == GUIInvokerResult.SUCCESS) {
@@ -175,11 +213,12 @@ public class SimpleManager {
 
     }
 
-     /**
+    /**
      * Initial version of ISAtab reloading code. Can be extended to take in the configuration directory as well
-     * @param studyId  - ID of study to unload
+     *
+     * @param studyId    - ID of study to unload
      * @param isatabFile - directory for ISAtab to be reloaded
-     * @param userName - username of submitter to be assigned as the owner of the submission
+     * @param userName   - username of submitter to be assigned as the owner of the submission
      */
     public void reloadISAtab(String studyId, String isatabFile, String configurationDirectory, String userName) throws Exception{
 
@@ -191,9 +230,10 @@ public class SimpleManager {
 
     /**
      * Initial version of ISAtab reloading code. Can be extended to take in the configuration directory as well
-     * @param studyId  - ID of study to unload
+     *
+     * @param studyId    - ID of study to unload
      * @param isatabFile - directory for ISAtab to be reloaded
-     * @param userName - username of submitter to be assigned as the owner of the submission
+     * @param userName   - username of submitter to be assigned as the owner of the submission
      */
     public GUIInvokerResult reloadISAtab(String studyId, String isatabFile, String userName) throws Exception{
 
@@ -265,27 +305,7 @@ public class SimpleManager {
     	return reindexStudies(Study2Set(Studieslist));
     }
     
-    /**
-     * pconesa
-     * Validates an ISATab File (zip)
-     * @param isatabFile
-     * @throws Exception
-     */
-    public GUIInvokerResult validateISAtab (String isatabFile) {
-    	
-    	// Instantiate the validator
-        GUIISATABValidator isatabValidator = new GUIISATABValidator();
-        
-        // Validate it
-        GUIInvokerResult result = isatabValidator.validate(isatabFile);
-        
-        // Set the last log with log info
-        lastLog = isatabValidator.getLog();
-        
-        return result;
-    }
-    
-    /**
+     /**
      * For given Studies, by their IDs, modifies their visibility
      *
      * @param status     - @see VisibilityStatus
@@ -392,7 +412,6 @@ public class SimpleManager {
             } else {
                 manager.loadISAtab(args[1], args[2], args[3]);
             }
-            System.exit(0);
         }
 
 
@@ -401,7 +420,6 @@ public class SimpleManager {
                 Set<String> toUnload = new HashSet<String>();
                 toUnload.addAll(Arrays.asList(args).subList(1, args.length));
                 manager.unLoadISAtab(toUnload);
-                System.exit(0);
             } else {
                 log.info("No studies to load.");
             }
@@ -409,8 +427,6 @@ public class SimpleManager {
 
         if (args[0].equals("reindexAll")) {
             manager.reindexDatabase();
-
-            System.exit(0);
         }
 
         if (args[0].equals("reindex")) {
@@ -418,10 +434,17 @@ public class SimpleManager {
                 Set<String> toReindex = new HashSet<String>();
                 toReindex.addAll(Arrays.asList(args).subList(1, args.length));
                 manager.reindexStudies(toReindex);
-                System.exit(0);
             } else {
                 log.info("No studies to reindex.");
             }
         }
+
+        if (args[0].equals("validate")) {
+            if (args.length == 3) {
+                manager.validateISAtab(args[1], args[2]);
+            }
+        }
+
+        System.exit(0);
     }
 }
