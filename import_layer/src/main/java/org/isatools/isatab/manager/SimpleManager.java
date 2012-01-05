@@ -342,6 +342,7 @@ public class SimpleManager {
             log.info("A problem occurred when setting permissions");
             
             throw e;
+
         }
     }
 
