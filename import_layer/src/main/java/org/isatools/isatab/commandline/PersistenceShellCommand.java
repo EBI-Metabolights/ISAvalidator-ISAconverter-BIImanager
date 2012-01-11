@@ -104,7 +104,7 @@ public class PersistenceShellCommand extends AbstractImportLayerShellCommand {
 
             Properties hibProps = AbstractImportLayerShellCommand.getHibernateProperties();
             hibProps.setProperty("hibernate.search.indexing_strategy", "manual");
-            hibProps.setProperty("hibernate.hbm2ddl.auto", "update");
+            //hibProps.setProperty("hibernate.hbm2ddl.auto", "update");
             hibProps.setProperty("hbm2ddl.drop", "false");
 
             EntityManagerFactory entityManagerFactory =
@@ -155,7 +155,7 @@ public class PersistenceShellCommand extends AbstractImportLayerShellCommand {
         log = Logger.getLogger(PersistenceShellCommand.class);
 
         hibernateProperties.setProperty("hibernate.search.indexing_strategy", "event");
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
+        //hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
         hibernateProperties.setProperty("hbm2ddl.drop", "false");
 
         StudyDAO studyDAO = DaoFactory.getInstance(entityManager1).getStudyDAO();
@@ -189,7 +189,7 @@ public class PersistenceShellCommand extends AbstractImportLayerShellCommand {
         log = Logger.getLogger(PersistenceShellCommand.class);
 
         hibernateProperties.setProperty("hibernate.search.indexing_strategy", "event");
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
+        //hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
         hibernateProperties.setProperty("hbm2ddl.drop", "false");
 
         EntityManagerFactory emf1 = Persistence.createEntityManagerFactory("BIIEntityManager", hibernateProperties);

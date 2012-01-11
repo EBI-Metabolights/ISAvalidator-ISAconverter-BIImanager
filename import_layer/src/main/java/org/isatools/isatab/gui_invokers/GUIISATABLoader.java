@@ -84,30 +84,30 @@ public class GUIISATABLoader extends AbstractGUIInvoker {
         Properties hibProps = AbstractImportLayerShellCommand.getHibernateProperties();
         hibProps.setProperty("hibernate.search.indexing_strategy", "manual");
         hibProps.setProperty("hbm2ddl.drop", "false");
-        hibProps.setProperty("hibernate.hbm2ddl.auto", "update");
+        //hibProps.setProperty("hibernate.hbm2ddl.auto", "update");
 
-        return persist(store, isatabSubmissionPath, null);
+        return persist(store, isatabSubmissionPath, null, true);
     }
 
 
     /**
      * Persist the store, assuming it has already been loaded.
      */
-    public GUIInvokerResult persist(BIIObjectStore store, String isatabSubmissionPath, EntityManager manager) {
+    public GUIInvokerResult persist(BIIObjectStore store, String isatabSubmissionPath, EntityManager manager, Boolean shouldIndex) {
         Properties hibProps = AbstractImportLayerShellCommand.getHibernateProperties();
         hibProps.setProperty("hibernate.search.indexing_strategy", "manual");
         hibProps.setProperty("hbm2ddl.drop", "false");
-        hibProps.setProperty("hibernate.hbm2ddl.auto", "update");
+        //hibProps.setProperty("hibernate.hbm2ddl.auto", "update");                          //Is this safe in production?
 
         if (manager == null) {
             EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("BIIEntityManager", hibProps);
             manager = entityManagerFactory.createEntityManager();
         }
 
-        return persist(store, isatabSubmissionPath, manager, hibProps);
+        return persist(store, isatabSubmissionPath, manager, hibProps, shouldIndex);
     }
 
-    public GUIInvokerResult persist(BIIObjectStore store, String isatabSubmissionPath, EntityManager entityManager, Properties hibProps) {
+    public GUIInvokerResult persist(BIIObjectStore store, String isatabSubmissionPath, EntityManager entityManager, Properties hibProps, Boolean shouldIndex) {
         try {
             vlog.info("Persisting " + store.size() + " object(s)");
 
@@ -119,7 +119,8 @@ public class GUIISATABLoader extends AbstractGUIInvoker {
             transaction.commit();
             entityManager.close();
 
-            PersistenceShellCommand.reindexStudies(store, hibProps);
+            if (shouldIndex)
+                PersistenceShellCommand.reindexStudies(store, hibProps);
 
             vlog.info("\n\n" + i18n.msg("mapping_done_data_saved_in_db"));
             vlog.debug("\n\n" + i18n.msg("submission_done_ts_reported",

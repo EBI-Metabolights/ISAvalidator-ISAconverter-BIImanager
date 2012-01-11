@@ -91,7 +91,7 @@ public abstract class AbstractGUIInvokerWithStudySelection extends AbstractGUIIn
     	hibernateProperties = AbstractImportLayerShellCommand.getHibernateProperties();
         hibernateProperties.setProperty("hibernate.search.indexing_strategy", "event");
         // We assume this, since we are unloading something that is supposed to already exist (including during tests).
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
+        //hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");            //TODO, Not sure how safe this is in production.  Ken
         hibernateProperties.setProperty("hbm2ddl.drop", "false");
 
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("BIIEntityManager", hibernateProperties);

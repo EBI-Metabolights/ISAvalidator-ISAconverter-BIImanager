@@ -76,6 +76,7 @@ public class SimpleManager {
 
     public SimpleManager() {
     }
+
     public SimpleManager(String DBConfigPath){
     	//Set the config path for the hibernate file and others...
     	AbstractImportLayerShellCommand.setDBConfigPath(DBConfigPath);
@@ -85,12 +86,15 @@ public class SimpleManager {
     public VisibilityStatus getStatus(){
     	return status;
     }
+
     public void setStatus(VisibilityStatus status){
     	this.status = status;
     }
+
     public String getDBConfigPath(){
     	return AbstractImportLayerShellCommand.getDBConfigPath();
     }
+
     /**
      * Sets the config folder where the hibernate and other config files must be located
      * @param DBConfigPath
@@ -105,23 +109,25 @@ public class SimpleManager {
             return false;
         }
     }
+
     public EntityManager getEntityManager(){
     	return sharedEntityManager;
     }
+
     public void setEntityManager(EntityManager em){
     	sharedEntityManager = em;
     }
 
     // pconesa Load isatab file with a status
-    public GUIInvokerResult loadISAtab(String isatabFile, String userName, VisibilityStatus status) throws Exception {
+    public GUIInvokerResult loadISAtab(String isatabFile, String userName, VisibilityStatus status, Boolean shouldIndex) throws Exception {
     	this.status = status;
-    	return loadISAtab(isatabFile, userName);
+    	return loadISAtab(isatabFile, userName, shouldIndex);
     }
 
     public GUIInvokerResult loadISAtab(String isatabFile, String configurationDirectory, String userName) throws Exception {
 
         if (loadConfiguration(configurationDirectory)) {
-            return loadISAtab(isatabFile, userName);
+            return loadISAtab(isatabFile, userName, true);
         } else {
             log.info("No configuration directory found...");
         	return GUIInvokerResult.WARNING;
@@ -167,7 +173,7 @@ public class SimpleManager {
         }
     }
 
-    public GUIInvokerResult loadISAtab(String isatabFile, String userName) throws Exception {
+    public GUIInvokerResult loadISAtab(String isatabFile, String userName, Boolean shouldIndex) throws Exception {
 
         GUIISATABValidator isatabValidator = new GUIISATABValidator();
 
@@ -178,7 +184,7 @@ public class SimpleManager {
             log.info("Validation successful, now proceeding to load ISAtab into the BII...");
 
             // even if the shared entitymanager is null, it will be generated in anycase by the loader code.
-            GUIInvokerResult loadingResult = loader.persist(isatabValidator.getStore(), isatabFile, sharedEntityManager);
+            GUIInvokerResult loadingResult = loader.persist(isatabValidator.getStore(), isatabFile, sharedEntityManager, shouldIndex);
             
             // Set the last log with log info
             lastLog = loader.getLog();
@@ -242,7 +248,7 @@ public class SimpleManager {
 
     	if(result == GUIInvokerResult.SUCCESS) {
             // continue
-            result = loadISAtab(isatabFile, userName);
+            result = loadISAtab(isatabFile, userName, true);
         }else{
         	//Nothing...it has been logged inside unLoadISATab method
         	
@@ -286,7 +292,10 @@ public class SimpleManager {
     public GUIInvokerResult reindexStudies(Set<String> studyIds) {
         GUIBIIReindex reindexer = new GUIBIIReindex(sharedEntityManager);
 
-        GUIInvokerResult result = reindexer.reindexSelectedStudies(studyIds);
+        GUIInvokerResult result = null;
+
+        log.info("Indexing "+studyIds.size()+" studies ");
+        result = reindexer.reindexSelectedStudies(studyIds);
         
         if ( result == GUIInvokerResult.SUCCESS) {
             log.info("Successfully reindexed selected studies...");
@@ -409,7 +418,7 @@ public class SimpleManager {
         if (args[0].equals("load")) {
             // args[0] should be the isatab directory. args[1] should be the configuration directory
             if (args.length == 3) {
-                manager.loadISAtab(args[1], args[2]);
+                manager.loadISAtab(args[1], args[2], true);
             } else {
                 manager.loadISAtab(args[1], args[2], args[3]);
             }
