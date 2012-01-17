@@ -36,7 +36,7 @@ public class SimpleManagerTest {
 		
 		// TODO: use a different user or create one on the fly
 		try {
-			sm.loadISAtab(new File("src/test/resources/test-data/isatab/metabolights/").getAbsolutePath(), "conesa@ebi.ac.uk");
+			sm.loadISAtab(new File("src/test/resources/test-data/isatab/metabolights/").getAbsolutePath(), "conesa@ebi.ac.uk",true);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("There has been an exception: " + e.getMessage());

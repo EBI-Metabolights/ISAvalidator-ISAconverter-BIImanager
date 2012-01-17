@@ -5,12 +5,9 @@ import org.isatools.isatab.commandline.PersistenceShellCommand;
 import org.isatools.tablib.utils.BIIObjectStore;
 import uk.ac.ebi.bioinvindex.model.Study;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.persistence.EntityManager;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * GUIBIIReindex
@@ -41,16 +38,25 @@ public class GUIBIIReindex extends AbstractGUIInvokerWithStudySelection {
             if (loadStudiesFromDB() == GUIInvokerResult.SUCCESS) {
 
                 Collection<Study> studies = getRetrievedStudies();
+                vlog.info(studies.size() + " studies found for reindex/comparison");
                 if (studies == null || studies.size() == 0) {
                     vlog.info("No studies in the BII DB");
                 } else {
                     for (Study s : studies) {
-                        if (studyIds.contains(s.getAcc())) {
-                            store.put(Study.class, s.getAcc(), s);
+                        
+                        for (String ids : studyIds){
+                            if (s.getAcc().equals(ids))
+                                store.put(Study.class, s.getAcc(), s);
                         }
+                        
+                       // if (studyIds.contains(s.getAcc())) {
+                       //     vlog.info("REINDEX: Found study " + s.getAcc() + " studyIds size = "+ studyIds.size());
+                       //     store.put(Study.class, s.getAcc(), s);
+                       // }
                     }
                 }
-                PersistenceShellCommand.reindexStudiesEfficient(store, entityManager, getHibernateProperties());
+                
+                PersistenceShellCommand.reindexStudies(store, getHibernateProperties());
                 return GUIInvokerResult.SUCCESS;
             } else {
                 vlog.error("Failed to load studies from database.");
