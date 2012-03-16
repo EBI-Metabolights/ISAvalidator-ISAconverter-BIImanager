@@ -6,7 +6,7 @@
     <groupId>org.isatools</groupId>
     <artifactId>import_layer_MTBLS</artifactId>
     <packaging>jar</packaging>
-    <version>1.3.2.7-SNAPSHOT</version>
+    <version>1.3.2.7-P-SNAPSHOT</version>
     <name>ISA Import Layer and Command Line Tools</name>
     <url>http://isatab.sf.net/</url>
     <description>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>uk.ac.ebi.bioinvindex</groupId>
             <artifactId>model</artifactId>
-            <version>1.4.5-SNAPSHOT</version>
+            <version>1.4.11-P-SNAPSHOT</version>
         </dependency>
 
         <dependency>

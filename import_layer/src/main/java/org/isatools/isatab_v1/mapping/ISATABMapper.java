@@ -77,6 +77,11 @@ public class ISATABMapper extends org.isatools.isatab.mapping.ISATABMapper {
         this.formatMappersConfig.put("nmr_spec_assay", NmrFormatTabMapper.class);
         this.formatMappersConfig.put("gel_electrophoresis_assay", GelFormatTabMapper.class);
     }
+    public ISATABMapper(BIIObjectStore store, FormatSetInstance formatSetInstance, String basePath) {
+    	this(store,formatSetInstance);
+    	this.basePath= basePath;
+    
+    }
 
 
 }

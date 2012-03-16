@@ -87,6 +87,7 @@ import java.util.*;
 public class ISATABMapper extends FormatSetTabMapper {
     private TabNDC ndc = TabNDC.getInstance();
     private ExperimentalPipelineVisitor graphVisitor = new ExperimentalPipelineVisitor();
+	protected String basePath = "";
 
     public ISATABMapper(BIIObjectStore store, FormatSetInstance formatSetInstance) {
         super(store, formatSetInstance);
@@ -101,7 +102,7 @@ public class ISATABMapper extends FormatSetTabMapper {
     @Override
     public BIIObjectStore map() {
         super.map();
-
+        
         mergeNodeTargets();
         removeOrphanNodes();
         mergeProcessings();
@@ -113,6 +114,10 @@ public class ISATABMapper extends FormatSetTabMapper {
         checkChaining();
         checkUnusedDeclaredEntities();
         checkInconsistentProperties();
+        
+        //Create AssayGroups
+        createAssayGroups();
+  
 
         return getStore();
     }
@@ -453,6 +458,21 @@ public class ISATABMapper extends FormatSetTabMapper {
     }
 
 
+    /**
+     * Add MetaboLights new entities to the BIIStore
+     */
+    private void createAssayGroups() {
+        for (AssayGroup ag : getStore().valuesOfType(AssayGroup.class)) {
+        	System.out.println(ag.getFilePath());
+        	Study study = ag.getStudy();
+        	uk.ac.ebi.bioinvindex.model.AssayGroup agm = new uk.ac.ebi.bioinvindex.model.AssayGroup(ag.getFilePath());
+        	study.getAssayGroups().add(agm);
+        	MetabolitesMapper.addMetabolitesToAssayGroup(agm, basePath);
+        	
+        }
+    }
+    
+  
     /**
      * Copies the factor values attached to samples to the data objects associated to the assay results.
      * This is needed in order to cope with the splitting between study file and assay files.

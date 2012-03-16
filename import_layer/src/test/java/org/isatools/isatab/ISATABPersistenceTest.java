@@ -82,6 +82,7 @@ public class ISATABPersistenceTest extends TransactionalDBUnitEJB3DAOTest {
 		out.println("\n\n_______________________ ISATAB Persistence Test (TX) _______________________\n\n");
 
 		String baseDir = System.getProperty("basedir");
+		if (baseDir == null) baseDir =".";
 		String filesPath = baseDir + "/target/test-classes/test-data/isatab/isatab/example_tx";
 		ISATABLoader loader = new ISATABLoader(filesPath);
 		FormatSetInstance isatabInstance = loader.load();
