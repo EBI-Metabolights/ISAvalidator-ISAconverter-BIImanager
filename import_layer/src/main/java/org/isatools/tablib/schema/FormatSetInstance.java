@@ -67,8 +67,9 @@ import java.util.List;
 public class FormatSetInstance implements TabInstanceEntity {
     private final FormatSet formatSet;
     private final List<FormatInstance> formatInstances = new ArrayList<FormatInstance>();
-
-    public FormatSetInstance(FormatSet formatSet) {
+    private String basePath="";
+ 
+	public FormatSetInstance(FormatSet formatSet) {
         if (formatSet == null) {
             throw new TabInternalErrorException("Cannot have a format set instance of a null format set");
         }
@@ -79,6 +80,14 @@ public class FormatSetInstance implements TabInstanceEntity {
     public FormatSet getFormatSet() {
         return formatSet;
     }
+
+    public String getBasePath() {
+		return basePath;
+	}
+
+	public void setBasePath(String basePath) {
+		this.basePath = basePath;
+	}
 
     public List<FormatInstance> getFormatInstances() {
         return Collections.unmodifiableList(formatInstances);

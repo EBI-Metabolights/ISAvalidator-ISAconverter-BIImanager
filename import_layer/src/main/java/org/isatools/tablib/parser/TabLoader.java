@@ -98,6 +98,7 @@ public class TabLoader {
     public TabLoader(FormatSet schema, String basePath) {
         this(schema);
         this.basePath = basePath;
+        formatSetInstance.setBasePath(basePath);
     }
 
     /**

@@ -61,7 +61,7 @@
         <class>uk.ac.ebi.bioinvindex.model.xref.ReferenceSource</class>
         <class>uk.ac.ebi.bioinvindex.model.xref.Xref</class>
 		<class>uk.ac.ebi.bioinvindex.model.AssayGroup</class>
-		<class>uk.ac.ebi.bioinvindex.model.MZTab</class>
+		<class>uk.ac.ebi.bioinvindex.model.Metabolite</class>
 
     </persistence-unit>
 

@@ -95,7 +95,7 @@ public class MetabolightsPersistenceTest extends TransactionalDBUnitEJB3DAOTest 
 		FormatSetInstance isatabInstance = loader.load();
 
 		BIIObjectStore store = new BIIObjectStore();
-		ISATABMapper isatabMapper = new ISATABMapper(store, isatabInstance, filesPath);
+		ISATABMapper isatabMapper = new ISATABMapper(store, isatabInstance);
 
 		isatabMapper.map();
 

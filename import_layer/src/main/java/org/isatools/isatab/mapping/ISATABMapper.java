@@ -87,7 +87,7 @@ import java.util.*;
 public class ISATABMapper extends FormatSetTabMapper {
     private TabNDC ndc = TabNDC.getInstance();
     private ExperimentalPipelineVisitor graphVisitor = new ExperimentalPipelineVisitor();
-	protected String basePath = "";
+	
 
     public ISATABMapper(BIIObjectStore store, FormatSetInstance formatSetInstance) {
         super(store, formatSetInstance);
@@ -467,7 +467,7 @@ public class ISATABMapper extends FormatSetTabMapper {
         	Study study = ag.getStudy();
         	uk.ac.ebi.bioinvindex.model.AssayGroup agm = new uk.ac.ebi.bioinvindex.model.AssayGroup(ag.getFilePath());
         	study.getAssayGroups().add(agm);
-        	MetabolitesMapper.addMetabolitesToAssayGroup(agm, basePath);
+        	MetabolitesMapper.addMetabolitesToAssayGroup(agm, this.getFormatSetInstance().getBasePath());
         	
         }
     }
