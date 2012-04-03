@@ -25,7 +25,9 @@ public class HeaderCsvReader {
      * that header.
      */
     protected Map<String, Integer> headers = new HashMap<String, Integer>();
+    private String hline[];
     private CSVReader csvr;
+    
     
 	public HeaderCsvReader(Reader reader) throws IOException {
 			
@@ -41,7 +43,7 @@ public class HeaderCsvReader {
      * First read the headers line, then call super.initFirstOject()
      */
     protected void readHeaders() throws IOException {
-        String hline[] = csvr.readNext();
+        hline = csvr.readNext();
         if (hline == null) {
             return;
         }
@@ -68,5 +70,10 @@ public class HeaderCsvReader {
         }
         return line[icol];
     }
-
+    public Map<String, Integer> getHeaders(){
+    	return headers;
+    }
+    public String[] getHLines(){
+    	return hline;
+    }
 }

@@ -62,6 +62,7 @@
         <class>uk.ac.ebi.bioinvindex.model.xref.Xref</class>
 		<class>uk.ac.ebi.bioinvindex.model.AssayGroup</class>
 		<class>uk.ac.ebi.bioinvindex.model.Metabolite</class>
+		<class>uk.ac.ebi.bioinvindex.model.MetaboliteSample</class>
 
     </persistence-unit>
 

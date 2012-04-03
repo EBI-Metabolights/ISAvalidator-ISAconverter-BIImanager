@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -18,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 
 import uk.ac.ebi.bioinvindex.model.AssayGroup;
 import uk.ac.ebi.bioinvindex.model.Metabolite;
+import uk.ac.ebi.bioinvindex.model.MetaboliteSample;
 
 public class MetabolitesMapper {
 
@@ -90,98 +92,6 @@ public class MetabolitesMapper {
     	
     }
 
-//    public static void addMetabolites(AssayGroup ag, String fileName) {
-//
-//        // Create a Hashmap with the index of the columns we want to index (
-//        HashMap<String, Integer> column_indexes = new HashMap<String, Integer>();
-//        
-//        // For each field to index
-//        for (String aCOLUMNS_TO_INDEX : COLUMNS_TO_INDEX) {
-//            column_indexes.put(aCOLUMNS_TO_INDEX, null);
-//        }
-//
-//        // Read the first line
-//        try {
-//
-//            // Get the index based on the first row
-//            File file = new File(fileName);
-//
-//            // Open the file
-//            BufferedReader reader = new BufferedReader(new FileReader(file));
-//
-//            String line = "";
-//            int linecount = 1;
-//
-//            //Go through the file
-//            while ((line = reader.readLine()) != null) {
-//
-//                String[] lineArray = lineToArray(line);
-//
-//                // Get the indexes for the columns descriptions
-//                if (linecount == 1) {
-//
-//                    // For each field in the line
-//                    for (int i = 0; i < lineArray.length; i++) {
-//
-//                        // Get the field
-//                        String field = lineArray[i];
-//
-//                        // Check if it is in the hash
-//                        if (column_indexes.containsKey(field)) {
-//
-//                            // Add the index
-//                            column_indexes.put(field, i);
-//                            
-//                        }
-//                    }
-//
-//                } else {
-//
-//                    Metabolite metabolite = new Metabolite(ag,"","");
-//                    boolean isRowEmpty = true;
-//
-//                    // Get the values
-//                    // For each column to index
-//                    for (Entry<String, Integer> ci : column_indexes.entrySet()) {
-//
-//                        // Get the value
-//                        String value = lineArray[ci.getValue()];
-//                        
-//                        // If value is NOT empty
-//                        if (!value.isEmpty())  isRowEmpty = false;
-//
-//                    	
-//                    	// If its the description...
-//                    	if (ci.getKey().equals(COLUMNS_TO_INDEX[0])){
-//                    		metabolite.setDescription(value);
-//                    		
-//                    	// If its the id
-//                    	}else if (ci.getKey().equals(COLUMNS_TO_INDEX[1])) {
-//							metabolite.setIdentifier(value);
-//						}
-//
-//                        
-//                    }
-//                    
-//                    // If we have found values add the string to the metabolites array
-//                    if (!isRowEmpty) ag.getMetabolites().add(metabolite);
-//                }
-//
-//
-//                linecount++;
-//            }
-//
-//            //Close the reader
-//            reader.close();
-//
-//
-//        } catch (Exception e) {
-//            // Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//
-//    }
-
     public static void addMetabolites(AssayGroup ag, String mafFileName) {
       	
     	// Get a reader of the assay file
@@ -206,6 +116,10 @@ public class MetabolitesMapper {
 
 	    		// If metabolite is not null
 	    		if (metabolite != null) {
+	    			
+	    			// Add MetaboliteSample entities to the Metabolite object.
+	    			addMetaboliteSamples(metabolite, line, hcsvr);
+	    			
 	    			ag.getMetabolites().add(metabolite);
 	    		}
 	    	
@@ -221,6 +135,33 @@ public class MetabolitesMapper {
 		}
 
 	
+    }
+    
+    private static void addMetaboliteSamples(Metabolite met, String[] line, HeaderCsvReader hcsvr){
+    	
+    	// If line is null
+    	if (line == null) return;
+    	
+    	// Get the first sample column:
+    	// NOTE: I am assuming that the first sample column comes after "smallmolecule_abundance_std_error_sub"
+    	Integer firstSampleCol = hcsvr.getHeaders().get("smallmolecule_abundance_std_error_sub");
+    	
+    	// For each column
+    	for (Integer col = firstSampleCol + 1; col < hcsvr.getHeaders().size(); col++){
+
+    		// Get the sample, name which is the header
+    		String sampleName =  hcsvr.getHLines()[col]; 
+
+    		// Get the value for that header
+    		double value = Double.parseDouble(hcsvr.getValue(line,sampleName));
+    		
+    		MetaboliteSample ms = new MetaboliteSample(met,sampleName, value);
+    		
+    		met.getMetaboliteSamples().add(ms);
+    		
+    	}
+    	
+    	
     }
     /**
      * Populates as much members as possible of a metabolite object from data in the line passed as parameter
