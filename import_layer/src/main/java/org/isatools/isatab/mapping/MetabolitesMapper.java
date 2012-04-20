@@ -153,7 +153,7 @@ public class MetabolitesMapper {
     		String sampleName =  hcsvr.getHLines()[col]; 
 
     		// Get the value for that header
-    		double value = Double.parseDouble(hcsvr.getValue(line,sampleName));
+    		String value = hcsvr.getValue(line,sampleName);
     		
     		MetaboliteSample ms = new MetaboliteSample(met,sampleName, value);
     		
