@@ -81,8 +81,8 @@ public class MetabolitesMapper {
 	    	
 	    	
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// There's no metabolite file.
+			
 		} finally{
 			//reader.close();
 		}
@@ -204,6 +204,10 @@ public class MetabolitesMapper {
     		
     		// If it hasn't returned null...
     		if (value!=null) {
+    			
+    			// TODO: to fix https://www.pivotaltracker.com/projects/620203#!/stories/35586843
+    			// Trim the value
+    			value = value.trim();
     			
     			// Use reflexion to invoke the setter (member = setter)
 	            Method meth;
