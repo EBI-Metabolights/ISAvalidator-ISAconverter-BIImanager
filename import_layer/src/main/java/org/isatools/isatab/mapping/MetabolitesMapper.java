@@ -1,29 +1,24 @@
 package org.isatools.isatab.mapping;
 
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-import java.io.Reader;
-import java.lang.reflect.Method;
-
-import org.isatools.tablib.utils.HeaderCsvReader;
-
 import org.apache.commons.lang.StringUtils;
-
-
+import org.isatools.tablib.utils.HeaderCsvReader;
 import uk.ac.ebi.bioinvindex.model.AssayGroup;
 import uk.ac.ebi.bioinvindex.model.Metabolite;
 import uk.ac.ebi.bioinvindex.model.MetaboliteSample;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 public class MetabolitesMapper {
 
-    static final String[] COLUMNS_TO_INDEX = {"description", "identifier"};
+    //static final String[] COLUMNS_TO_INDEX = {"description", "identifier"};
+    static final String[] COLUMNS_TO_INDEX = {"cleanedDescription", "identifier"};
 
     public static void addMetabolitesToAssayGroup(AssayGroup ag, String basepath ){
     	
@@ -285,8 +280,7 @@ public class MetabolitesMapper {
     public static String getterToField(String getterName){
     	
     	getterName =  getterName.replaceFirst("set", ""); 			// Remove get
-		
-		
+
 		// Change it to lower case
     	getterName = getterName.toLowerCase();
     	

@@ -6,7 +6,7 @@
     <groupId>org.isatools</groupId>
     <artifactId>import_layer_MTBLS</artifactId>
     <packaging>jar</packaging>
-    <version>1.3.2.29-P-SNAPSHOT</version>
+    <version>1.3.2.50-SNAPSHOT</version>
     <name>ISA ImportLayer and Command Line Tools</name>
     <url>http://isatab.sf.net/</url>
     <description>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>uk.ac.ebi.bioinvindex</groupId>
             <artifactId>model</artifactId>
-            <version>1.4.36-P-SNAPSHOT</version>
+            <version>1.4.51-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -298,6 +298,13 @@
 
 
     <build>
+    	<extensions>
+      		<extension>
+        		<groupId>org.apache.maven.wagon</groupId>
+        		<artifactId>wagon-ssh</artifactId>
+        		<version>1.0-beta-6</version>
+      		</extension>
+   	</extensions>
 
         <plugins>
 
@@ -529,7 +536,7 @@
                             <execution>
                                 <id>deps</id>
                                 <configuration>
-                                    <finalName>import_layer_deps_1.3.2.29-P</finalName>
+                                    <finalName>import_layer_deps_1.3.2.50</finalName>
                                     <appendAssemblyId>false</appendAssemblyId>
                                     <attach>false</attach>
                                     <descriptors>
