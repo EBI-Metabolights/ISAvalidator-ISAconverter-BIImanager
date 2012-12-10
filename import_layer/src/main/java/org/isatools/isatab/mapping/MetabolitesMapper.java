@@ -18,7 +18,7 @@ import java.util.List;
 public class MetabolitesMapper {
 
     //static final String[] COLUMNS_TO_INDEX = {"description", "identifier"};
-    static final String[] COLUMNS_TO_INDEX = {"cleanedDescription", "identifier"};
+    static final String[] COLUMNS_TO_INDEX = {"cleanedDescription", "identifier", "database_identifier"};
 
     public static void addMetabolitesToAssayGroup(AssayGroup ag, String basepath ){
     	
@@ -174,8 +174,14 @@ public class MetabolitesMapper {
     	
     	// Check if minimum information is there (Description or Identifier)
     	String description = reader.getValue(line, COLUMNS_TO_INDEX[0]);
-    	String identifier = reader.getValue(line, COLUMNS_TO_INDEX[1]);
-    	
+    	String oldIdentifier = reader.getValue(line, COLUMNS_TO_INDEX[1]);
+        String newIdentifier = reader.getValue(line, COLUMNS_TO_INDEX[2]);
+
+        String identifier = oldIdentifier;
+
+        if (newIdentifier != null && !newIdentifier.equals("") && StringUtils.isNotBlank(newIdentifier))
+            identifier = newIdentifier;
+
     	if (!StringUtils.isNotBlank(description) && !StringUtils.isNotBlank(identifier)){
     		return null;
     	}
