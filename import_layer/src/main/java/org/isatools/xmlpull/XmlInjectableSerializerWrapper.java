@@ -25,7 +25,7 @@
  * To contact the developers: isatools@googlegroups.com
  *
  * To report bugs: http://sourceforge.net/tracker/?group_id=215183&atid=1032649
- * To request enhancements: Êhttp://sourceforge.net/tracker/?group_id=215183&atid=1032652
+ * To request enhancements: http://sourceforge.net/tracker/?group_id=215183&atid=1032652
  *
  *
  * __________

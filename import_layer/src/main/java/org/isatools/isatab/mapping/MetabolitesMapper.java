@@ -18,7 +18,8 @@ import java.util.List;
 public class MetabolitesMapper {
 
     //static final String[] COLUMNS_TO_INDEX = {"description", "identifier"};
-    static final String[] COLUMNS_TO_INDEX = {"cleanedDescription", "identifier", "database_identifier"};
+    //static final String[] COLUMNS_TO_INDEX = {"description","cleanedDescription", "identifier", "database_identifier"}; //Bug, this is not used for reindexing
+    private static final String[] COLUMNS_TO_INDEX = {"identifier", "database_identifier", "description", "metabolite_identification"};
 
     public static void addMetabolitesToAssayGroup(AssayGroup ag, String basepath ){
     	
@@ -173,19 +174,25 @@ public class MetabolitesMapper {
     	if (line == null) return null;
     	
     	// Check if minimum information is there (Description or Identifier)
-    	String description = reader.getValue(line, COLUMNS_TO_INDEX[0]);
-    	String oldIdentifier = reader.getValue(line, COLUMNS_TO_INDEX[1]);
-        String newIdentifier = reader.getValue(line, COLUMNS_TO_INDEX[2]);
+        //private static final String[] COLUMNS_TO_INDEX = {"identifier", "database_identifier","description","metabolite_identification"};
+        String oldIdentifier  = reader.getValue(line, COLUMNS_TO_INDEX[0]);   //V1 identifier
+        String newIdentifier  = reader.getValue(line, COLUMNS_TO_INDEX[1]);   //V2 identifier
+    	String oldDescription = reader.getValue(line, COLUMNS_TO_INDEX[2]);   //V1 description
+        String newDescription = reader.getValue(line, COLUMNS_TO_INDEX[3]);   //V2 description
 
-        String identifier = oldIdentifier;
+        String identifier = oldIdentifier;         //Set's V1 identifier to new identifier
+        String description = oldDescription;       //Set's V1 description to new description
 
-        if (newIdentifier != null && !newIdentifier.equals("") && StringUtils.isNotBlank(newIdentifier))
+        if (newIdentifier != null && !newIdentifier.equals("") && StringUtils.isNotBlank(newIdentifier)) //Map V2 to V1
             identifier = newIdentifier;
 
-    	if (!StringUtils.isNotBlank(description) && !StringUtils.isNotBlank(identifier)){
+        if (newDescription != null && !newDescription.equals("") && StringUtils.isNotBlank(newDescription)) //Map V2 to V1
+            description = newDescription;
+
+    	//if (!StringUtils.isNotBlank(description) && !StringUtils.isNotBlank(identifier))
+        if (description == null && identifier == null)
     		return null;
-    	}
-    	
+
     	// For reflection
     	Class cls = Metabolite.class;
     	
