@@ -59,8 +59,6 @@ import org.isatools.tablib.export.FormatExporter;
 import org.isatools.tablib.schema.Record;
 import org.isatools.tablib.schema.SectionInstance;
 import org.isatools.tablib.utils.BIIObjectStore;
-import uk.ac.ebi.bioinvindex.dao.StudyDAO;
-import uk.ac.ebi.bioinvindex.dao.ejb3.DaoFactory;
 import uk.ac.ebi.bioinvindex.model.Study;
 import uk.ac.ebi.bioinvindex.model.processing.Assay;
 import uk.ac.ebi.bioinvindex.model.term.AnnotationTypes;
@@ -239,7 +237,7 @@ public class DataFilesDispatcher {
                 }
 
                 // Relative paths occur e.g. for an unzipped, self-contained ISAtab archive,
-                // Absolute paths can be expected if the ISAtab files are describing data 
+                // Absolute paths can be expected if the ISAtab files are describing data
                 // on a local filesystem
 
                 File srcFile = new File(sourceFilePath);
@@ -258,7 +256,7 @@ public class DataFilesDispatcher {
                 } else {
 
                     if (targetFile.exists() && targetFile.lastModified() == srcFile.lastModified()) {
-                        log.debug("Not copying “" + srcFile.getCanonicalPath() + "' to '" + targetFile.getCanonicalPath()
+                        log.debug("Not copying " + srcFile.getCanonicalPath() + "' to '" + targetFile.getCanonicalPath()
                                 + "': they seem to be the same.");
                     } else {
                         log.trace("Copying data file '" + fieldHeader + "' / '" + sourceFilePath + "' to data repository...");
