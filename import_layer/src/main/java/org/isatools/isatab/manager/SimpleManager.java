@@ -181,6 +181,7 @@ public class SimpleManager {
             GUIISATABValidator isatabValidator = new GUIISATABValidator();
 
             validationResult = isatabValidator.validate(isatabFile);
+            lastLog = isatabValidator.getLog();
             if (validationResult == GUIInvokerResult.SUCCESS) {
                 System.out.println("Validation successful!");
                 log.info("Validation successful...");
@@ -409,9 +410,11 @@ public class SimpleManager {
     public List<TabLoggingEventWrapper> getLastLog() {
     	return lastLog;
     }
+
     public GUIInvokerResult unLoadISAtab(String Studylist){
     	return unLoadISAtab(Study2Set(Studylist));
     }
+
     private boolean loadConfiguration(String configuration) {
         if (new File(configuration).exists()) {
             ISAConfigurationSet.setConfigPath(configuration);
