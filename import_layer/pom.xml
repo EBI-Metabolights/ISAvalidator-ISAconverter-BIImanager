@@ -4,7 +4,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.isatools</groupId>
-    <artifactId>import_layer</artifactId>
+    <artifactId>import_layer_MTBLS</artifactId>
     <packaging>jar</packaging>
     <version>1.6.5</version>
     <name>ISA Import Layer and Command Line Tools</name>
@@ -66,7 +66,7 @@
 
         <dependency>
             <groupId>uk.ac.ebi.bioinvindex</groupId>
-            <artifactId>model</artifactId>
+            <artifactId>model_MTBLS</artifactId>
             <type>jar</type>
             <version>${bii.version}</version>
         </dependency>
