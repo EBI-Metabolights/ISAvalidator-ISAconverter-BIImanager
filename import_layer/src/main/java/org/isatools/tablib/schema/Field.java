@@ -57,6 +57,7 @@ import org.isatools.tablib.schema.constraints.FollowsConstraint;
 import org.isatools.tablib.schema.constraints.PrecedesConstraint;
 import uk.ac.ebi.utils.regex.RegEx;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -79,7 +80,10 @@ public class Field extends SchemaNode implements Cloneable {
     /**
      * How we match an header, either in X or in X[Y](Z), X,Y,Z must match this pattern
      */
-    public static final String ID_PATTERN = "[\\w_]+(?: *[\\w/_\\-\\: ]+)? *";
+    public static final String ID_PATTERN = "" +
+            "[\\w_]+(?: *[\\w/_\\-\\:\\.\\, ]+)? *";
+    public static final String WORDS_PATTERN = "[\\w_\\s,/\\-#\\(\\)]+";
+    public static final String URL_PATTERN = "\\b(((\\S+)?)(@|mailto\\:|(news|(ht|f)tp(s?))\\://)\\S+)\\b";
 
     public Field() {
     }
@@ -106,11 +110,12 @@ public class Field extends SchemaNode implements Cloneable {
 
     /**
      * Parses a possibly complex header and sets up corresponding bits in the field, for instance
-     * "Factor[Grow Condition](media)" is splitted into Factor, GC, media
+     * "Characteristics [Grow Condition(obi:13123)] " is splitted into Factor, GC, obi:media or Characteristics[Grow Condition(http://purl.org/obi/12133)] is split
+     * into Factor Value, GC, http://purl.org/obi/12133
      * <p/>
      * Returns the array returned by the RE matcher, with the values:
      * <pre>
-     *   0 - the whole parameter string ( "Factor[Grow Condition](media)" )
+     *   0 - the whole parameter string ( "Factor[Grow Condition(media)]" )
      *   1 - Factor
      *   2 - Grow Condition
      *   3 - media
@@ -124,14 +129,13 @@ public class Field extends SchemaNode implements Cloneable {
 
         // REs are our friends here
         //
-        String
-                // Used to match the whole header
-                pattern = "^ *(" + ID_PATTERN + ") *(?:\\[ *(" + ID_PATTERN + ") *\\] *(?:\\( *(" + ID_PATTERN + ") *\\))?)? *$";
+        String pattern = "^ *(" + ID_PATTERN + ") *(?:\\[ *(" + ID_PATTERN + ")* *(?:\\( *(" + ID_PATTERN + "|" + WORDS_PATTERN + "|" + URL_PATTERN + ") *\\))?\\])? *$";
 
         log.trace("Field.parseHeader( '" + header + "' ), using the pattern: '" + pattern + "'");
         String bits[] = new RegEx(pattern, isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE).groups(header);
         log.trace(String.format("Field.parseHeaderRawResult('%s'), bits are: %s", header, Arrays.toString(bits)));
         if (bits == null || bits.length < 2) {
+            log.error("Field.parseHeader(): bad syntax for the header: " + header);
             throw new TabInvalidValueException("Field.parseHeader(): bad syntax for the header: " + header);
         }
 
@@ -145,10 +149,9 @@ public class Field extends SchemaNode implements Cloneable {
         return parseHeaderRawResult(header, true);
     }
 
-
     /**
      * Parses a possibly complex header and sets up corresponding bits in the field, for instance
-     * "Factor[Grow Condition](media)" is splitted into id = Factor, type = GC, type1 = media
+     * "Factor[Grow Condition (media)]" is split into id = Factor, type = GC, type1 = media
      * <p/>
      * Pass the col parameter to store the column in the TAB where this header was matched.
      * <p/>
@@ -183,18 +186,40 @@ public class Field extends SchemaNode implements Cloneable {
         // Rebuild the header, we need it with the case that has been defined
         String builtHeader = id;
 
+        String supposedAccession = "";
+        if (bits.length > 3 && bits[3] != null) {
+            supposedAccession = bits[3].trim();
+        }
+
         // Setup the type
         if (bits.length > 2 && bits[2] != null) {
             String type = bits[2].trim();
-            clone.setAttr("type", type);
-            builtHeader += " [" + type + "]";
+
+            if (type.contains(",")) {
+                String[] ontologyParts = type.split(",");
+                clone.setAttr("type", ontologyParts[0]);
+                type = ontologyParts[0];
+                supposedAccession = ontologyParts[1];
+            } else {
+                clone.setAttr("type", type);
+            }
+
+            builtHeader += " [" + type + "$ACCESSION]";
         }
 
         // Setup the sub-type
-        if (bits.length > 3 && bits[3] != null) {
-            String type1 = bits[3].trim();
-            clone.setAttr("type1", type1);
-            builtHeader += " (" + type1 + ")";
+        if (!supposedAccession.isEmpty()) {
+
+            clone.setAttr("accession", supposedAccession);
+
+            if (supposedAccession.contains(":")) {
+                builtHeader = builtHeader.replace("$ACCESSION", "");
+                builtHeader += "(" + supposedAccession + ")";
+            } else {
+                builtHeader = builtHeader.replace("$ACCESSION", " (" + supposedAccession + ")");
+            }
+        } else {
+            builtHeader = builtHeader.replace("$ACCESSION", "");
         }
 
         clone.setAttr("header", builtHeader);
@@ -284,9 +309,7 @@ public class Field extends SchemaNode implements Cloneable {
 
         if (this.constraints != null) {
             clone.constraints = new FieldConstraint[this.constraints.length];
-            for (int i = 0; i < this.constraints.length; i++) {
-                clone.constraints[i] = this.constraints[i];
-            }
+            System.arraycopy(this.constraints, 0, clone.constraints, 0, this.constraints.length);
         }
         return clone;
     }
@@ -318,7 +341,7 @@ public class Field extends SchemaNode implements Cloneable {
 
     public StringBuilder dump() {
         String type = getAttr("type");
-        String type1 = getAttr("type1");
+        String type1 = getAttr("accession");
         StringBuilder result = new StringBuilder(getId());
         if (type != null && type.length() != 0) {
             result.append("[" + type + "]");
@@ -327,6 +350,11 @@ public class Field extends SchemaNode implements Cloneable {
             result.append("(" + type1 + ")");
         }
         return result;
+    }
+
+    public boolean isAccessionURL() {
+        return getAttr("accession") != null
+                && getAttr("accession").matches("(" + URL_PATTERN + ")?");
     }
 
 

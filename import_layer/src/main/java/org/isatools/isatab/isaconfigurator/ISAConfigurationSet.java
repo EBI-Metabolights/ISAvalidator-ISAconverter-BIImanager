@@ -71,14 +71,12 @@ import java.util.*;
  * see XSD file that defines the latter.
  */
 public class ISAConfigurationSet {
-    public final static String
-            NS_CFG = "http://www.ebi.ac.uk/bii/isatab_configuration#";
-    // "http://www.w3.org/2005/02/xpath-functions/#";
+    public final static String NS_CFG = "http://www.ebi.ac.uk/bii/isatab_configuration#";
 
     private static String configPath = AbstractImportLayerShellCommand.getDBConfigPath() + "/isa_configurator";
 
-    private Map<String, IsaTabConfigFileType> _isaConfigFiles;
-    private Map<String, IsaTabConfigurationType> _isaConfigs;
+    private static Map<String, IsaTabConfigFileType> _isaConfigFiles;
+    private static Map<String, IsaTabConfigurationType> _isaConfigs;
 
     protected static final Logger log = Logger.getLogger(ISAConfigurationSet.class);
 
@@ -87,12 +85,15 @@ public class ISAConfigurationSet {
      */
     public static void setConfigPath(String configPath) {
         ISAConfigurationSet.configPath = configPath;
+        _isaConfigFiles = null;
+        _isaConfigs = null;
     }
 
     /**
-     * Reads a cofig file and adds up it to the config set
+     * Reads a config file and adds up it to the config set
      */
     private void addConfigFile(String path, InputStream input) {
+        System.out.println("addConfigFile path="+path);
         try {
             IsatabConfigFileDocument configFileDoc = IsatabConfigFileDocument.Factory.parse(input);
             IsaTabConfigFileType configFile = configFileDoc.getIsatabConfigFile();
@@ -116,14 +117,16 @@ public class ISAConfigurationSet {
 
             _isaConfigFiles.put(path, configFile);
         } catch (XmlException e) {
+            e.printStackTrace();
             throw new TabInternalErrorException(i18n.msg("isaconfig_loading_error", path, e.getMessage()), e);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new TabIOException(i18n.msg("isaconfig_loading_error", path, e.getMessage()), e);
         }
     }
 
     /**
-     * Reads a cofig file and adds up it to the config set
+     * Reads a config file and adds up it to the config set
      */
     private void addConfigFile(File file) {
         try {
@@ -134,7 +137,7 @@ public class ISAConfigurationSet {
     }
 
     /**
-     * Reads a cofig file and adds up it to the config set
+     * Reads a config file and adds up it to the config set
      */
     private void addConfigFile(String path) {
         addConfigFile(new File(path));
@@ -154,6 +157,8 @@ public class ISAConfigurationSet {
             return;
         }
         for (File file : (Collection<File>) FileUtils.listFiles(new File(path), new String[]{"xml"}, true)) {
+            if (file.getName().startsWith("."))
+                continue;
             addConfigFile(file);
         }
     }
@@ -199,7 +204,14 @@ public class ISAConfigurationSet {
     public IsaTabConfigurationType getConfig(String measurementType, String technologyType) {
         measurementType = StringUtils.trimToEmpty(measurementType).toLowerCase();
         technologyType = StringUtils.trimToEmpty(technologyType).toLowerCase();
-        return getIsaTabConfigs().get(measurementType + "//" + technologyType);
+
+        IsaTabConfigurationType config = getIsaTabConfigs().get(measurementType + "//" + technologyType);
+
+        if (config == null) {
+            config = getIsaTabConfigs().get("*//*");
+        }
+
+        return config;
     }
 
     /**

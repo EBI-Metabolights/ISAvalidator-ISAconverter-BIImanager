@@ -67,11 +67,14 @@ public class GenericAssayProcessingTabMapper extends ProcessingsTabMapper {
 
     public GenericAssayProcessingTabMapper(BIIObjectStore store, SectionInstance sectionInstance) {
         super(store, sectionInstance);
+
         nodeMappersConfig.put("Sample Name", SampleTabMapper.class);
         nodeMappersConfig.put("Protocol REF", GenericProtocolApplicationTabMapper.class);
         nodeMappersConfig.put("Extract Name", ExtractTabMapper.class);
         nodeMappersConfig.put("Labeled Extract Name", LabeledExtractTabMapper.class);
         nodeMappersConfig.put("Assay Name", GenericAssayTabMapper.class);
+
+        nodeMappersConfig.put("Derived Data File", GenericProcessedDataTabMapper.class);
         nodeMappersConfig.put("Raw Data File", GenericRawDataTabMapper.class);
         nodeMappersConfig.put("Normalization Name", GenericNormalizationTabMapper.class);
         nodeMappersConfig.put("Data Transformation Name", GenericDataTransformationTabMapper.class);

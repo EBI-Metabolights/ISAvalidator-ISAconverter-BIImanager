@@ -51,6 +51,7 @@ package org.isatools.tablib.parser;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.isatools.isatab.ISATABPersister;
+import org.isatools.isatab_nano.NANOFormatWrapper;
 import org.isatools.tablib.exceptions.TabInternalErrorException;
 import org.isatools.tablib.exceptions.TabStructureError;
 import org.isatools.tablib.schema.*;
@@ -201,16 +202,14 @@ public class TabLoader {
      * <p/>
      * TODO: move the code in a specific parser.
      *
-     * @param fileId used to store it in the resulting format instance.
-     * @param    reader the TSV stream to read lines from
-     * @param    formatId the name of format expected in the reader
+     * @param fileId   used to store it in the resulting format instance.
+     * @param reader   the TSV stream to read lines from
+     * @param format the name of format expected in the reader
      */
     public FormatInstance parse(String fileId, Reader reader, Format format)
             throws IOException {
 
-
         // ____________ Init ______________
-        //
         if (format == null) {
             throw new TabInternalErrorException("parse(): null format");
         }
@@ -228,14 +227,11 @@ public class TabLoader {
         FormatInstance formatInstance = new FormatInstance(format, formatSetInstance);
         formatInstance.setFileId(fileId);
 
-
         // Step through the sections while scanning the lines
-        //
-        // TODO: remove int lineNo = 1;
         Section curSection = null;
         int sectionStartingLine = -1;
 
-        for (String[] csvLine = null; (csvLine = csvrdr.readNext()) != null;) {
+        for (String[] csvLine; (csvLine = csvrdr.readNext()) != null; ) {
             log.trace("Parsing line: " + ArrayUtils.toString(csvLine));
 
             if (TabCsvReader.isCommentLine(csvLine))
@@ -254,7 +250,7 @@ public class TabLoader {
 
                     if (TabCsvReader.isHeaderLine(csvLine)) {
                         String csvHeader = csvLine[0];
-                        Section section = (Section) format.getSectionByHeader(csvHeader, false);
+                        Section section = format.getSectionByHeader(csvHeader, false);
 
                         if (section != null) {
                             // Convert the header into the preferred format (e.g.: upper case)
@@ -289,14 +285,15 @@ public class TabLoader {
                         status = ParserState.WAITING_SECTION_BEGIN;
                     } else {
                         // Accumulate the lines for the section
+
+                        NANOFormatWrapper.processFileHeader(csvLine);
                         csvLines.add(csvLine);
+
                         log.trace("Added the line:\n" + Arrays.toString(csvLine) + "\nlen: " + csvLine.length);
                     }
 
                     // no other case will occur
             }    // switch
-
-            // TODO: remove lineNo++;
         } // loop on the lines
 
 

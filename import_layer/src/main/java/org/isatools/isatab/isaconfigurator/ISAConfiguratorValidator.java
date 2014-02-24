@@ -68,9 +68,9 @@ import java.util.Set;
 /**
  * The ISAConfigurator Validator.
  * <p/>
- * This is the component to be used for validate an ISATAB submission by using the rules that come from a configuration
- * defined by means of the ISAConfigurator tool. Usually you don't need to invoke this component directly, cause it is
- * already used by the {@link ISATABValidator}.
+ * This is the component to be used for validate an ISATAB submission by using the rules that
+ * come from a configuration defined by means of the ISAConfigurator tool. Usually you don't need
+ * to invoke this component directly, cause it is already used by the {@link ISATABValidator}.
  *
  * @author brandizi
  *         <b>date</b>: Oct 9, 2009
@@ -97,7 +97,7 @@ public class ISAConfiguratorValidator {
      * Do all here.
      */
     public GUIInvokerResult validate() {
-        GUIInvokerResult result = GUIInvokerResult.SUCCESS;
+        GUIInvokerResult result;
         messages.clear();
 
         if (isaConfigSet.isEmpty()) {
@@ -115,7 +115,8 @@ public class ISAConfiguratorValidator {
 
 
     /**
-     * Goes through all the ISATAB tables (sample files and assay files) and uses the validators in the validators package.
+     * Goes through all the ISATAB tables (sample files and assay files) and uses
+     * the validators in the validators package.
      */
     private GUIInvokerResult validateAllTables() {
         GUIInvokerResult result = GUIInvokerResult.SUCCESS;
@@ -125,12 +126,12 @@ public class ISAConfiguratorValidator {
                 new FieldValuesValidator(store, isaConfigSet, messages),
                 new OntologyValidator(store, isaConfigSet, messages),
                 new UnitFieldsValidator(store, isaConfigSet, messages),
-                new ProtocolFieldsValidator(store, isaConfigSet, messages)
+                new ProtocolFieldsValidator(store, isaConfigSet, messages),
+                new FactorValuePresenceValidator(store, isaConfigSet, messages)
+//                new ISATABNanoMaterialFileValidator(store, isaConfigSet, messages)
         };
 
-
         Set<SectionInstance> processedSampleSections = new HashSet<SectionInstance>();
-
         for (AssayGroup ag : store.valuesOfType(AssayGroup.class)) {
             ndc.pushObject(ag.getStudy());
 
@@ -153,6 +154,13 @@ public class ISAConfiguratorValidator {
                             result = GUIInvokerResult.WARNING;
                         }
                     }
+
+                    SampleNameValidator sampleNameLinkValidator = new SampleNameValidator();
+                    GUIInvokerResult sampleNameLinkResult = sampleNameLinkValidator.validate(sampleSection, ag);
+                    if (sampleNameLinkResult == GUIInvokerResult.ERROR) {
+                        throw new TabValidationException(i18n.msg("sample_link_check_failed"));
+                    }
+
                     ndc.popTabDescriptor();
                 }
 
@@ -173,8 +181,21 @@ public class ISAConfiguratorValidator {
                     ndc.pushFormat(assaySection.getParent());
                     for (AbstractValidatorComponent validator : validators) {
                         GUIInvokerResult valResult = validator.validate(assaySection, cfg);
+
                         if (GUIInvokerResult.ERROR == valResult) {
-                            throw new TabValidationException(i18n.msg("isacfg_validation_failed"));
+                            // TRY with the generic assay, if it exists.
+                            IsaTabConfigurationType genericConfig = isaConfigSet.getConfig("*", "*");
+                            if (genericConfig != null && genericConfig != cfg) {
+                                log.info("**** Trying validation with the generic assay type.");
+                                valResult = validator.validate(assaySection, genericConfig);
+                                if (valResult == GUIInvokerResult.ERROR) {
+                                    throw new TabValidationException(i18n.msg("isacfg_validation_failed"));
+                                }
+                                log.info("**** Validation successful with the generic assay type.");
+                            } else {
+                                log.info("**** No generic assay type available to validate against.");
+                                throw new TabValidationException(i18n.msg("isacfg_validation_failed"));
+                            }
                         } else if (valResult == GUIInvokerResult.WARNING) {
                             result = GUIInvokerResult.WARNING;
                         }

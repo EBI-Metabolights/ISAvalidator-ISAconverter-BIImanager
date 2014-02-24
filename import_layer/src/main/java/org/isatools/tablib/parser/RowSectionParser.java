@@ -79,7 +79,7 @@ public class RowSectionParser implements TabParser<SectionInstance> {
      * Parses a CSV header line and creates the corresponding resulting schema in the section
      * (i.e.: a set of fields with positions)
      */
-    protected List<Field> parseHeaders(List<String[]> csvLines, int fromRow, int toRow, int fromCol, int toCol) {
+    protected List<Field> parseHeaders(List<String[]> csvLines) {
         Section section = sectionInstance.getSection();
         String sectionId = section.getId();
 
@@ -112,8 +112,8 @@ public class RowSectionParser implements TabParser<SectionInstance> {
                 continue;
             }
             log.trace("Working on header " + j + ":" + header);
-
             Field field = section.getFieldByHeader(header, false);
+
             if (field == null) {
                 throw new TabValidationException(i18n.msg("unexpected_field_in_section_error", header, sectionId));
             }
@@ -158,7 +158,7 @@ public class RowSectionParser implements TabParser<SectionInstance> {
             return sectionInstance;
         }
 
-        List<Field> fields = parseHeaders(csvLines, fromRow, toRow, fromCol, toCol);
+        List<Field> fields = parseHeaders(csvLines);
         toCol = Math.min(toCol, fields.size() - 1);
 
         // Let's go over the lines

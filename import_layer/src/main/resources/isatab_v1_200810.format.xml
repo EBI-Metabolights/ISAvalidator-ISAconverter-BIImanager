@@ -173,7 +173,7 @@
                            follows: allows to specify which headers should/must follow this one. Can be prefixed by "supposed ".
                            Can be [nothing], meaning it should/must be the first node
 
-                           precedes: similar to follows. The code supports simmetry/transitivity of "follows" and
+                           precedes: similar to follows. The code supports symmetry/transitivity of "follows" and
                            "precedes", so that order rules can be specified only once.
 
                            TODO: these restrictions are checked in node fields (e.g.: Source Name or Sample Name) and certain attributes
@@ -257,7 +257,6 @@
 
     </format>
 
-
     <format id="transcriptomics_assay" label="Transcriptomics Assay File">
 
         <section id="transcriptomics_pipeline" type='many-in-rows' header="ASSAYS"
@@ -287,16 +286,18 @@
             <field id="Hybridization Assay Name" follows="supposed Labeled Extract Name"/>
             <field id="Array Design REF"/>
 
-            <field id="Scan Name" follows="supposed Hybridization Assay Name"/>
-            <field id="Array Data File" ref-file-type="raw"/>
+            <field id="Scan Name"/>
+            <field id="Array Data File" ref-file-type="raw"  follows="supposed Array Design REF"/>
             <field id="Array Data Matrix File" ref-file-type="raw"/>
             <field id="Image File" ref-file-type="generic"/>
 
-            <field id="Normalization Name" follows="supposed Scan Name"/>
+            <field id="Normalization Name" />          <!--follows="supposed Scan Name" -->
             <field id="Derived Array Data File" ref-file-type="processed"/>
+
+
             <field id="Derived Array Data Matrix File" ref-file-type="processed"/>
 
-            <field id="Data Transformation Name" follows="supposed Normalization Name"/>
+            <field id="Data Transformation Name" follows="supposed Normalization Name"/>             <!---->
 
             <field id="Comment" type="typed(string)"/>
 

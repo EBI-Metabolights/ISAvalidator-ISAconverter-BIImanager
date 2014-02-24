@@ -50,15 +50,15 @@ package org.isatools.gui;
 
 import org.apache.log4j.Level;
 import org.isatools.effects.GenericPanel;
-import org.isatools.effects.GradientPanel;
 import org.isatools.effects.SmallLoader;
 import org.isatools.effects.UIHelper;
+import org.isatools.errorreporter.model.*;
+import org.isatools.errorreporter.ui.ErrorReporterView;
 import org.isatools.fileutils.ArchiveOrDirectoryFileFilter;
 import org.isatools.fileutils.FileUnzipper;
 import org.isatools.gui.converter.ConverterBackgroundPanel;
 import org.isatools.gui.datamanager.DataManagerBackgroundPanel;
 import org.isatools.gui.datamanager.studyaccess.LoginUI;
-import org.isatools.gui.errorprocessing.ErrorReport;
 import org.isatools.gui.validator.ValidatorBackgroundPanel;
 import org.isatools.isatab.gui_invokers.GUIISATABValidator;
 import org.isatools.isatab.gui_invokers.GUIInvokerResult;
@@ -68,14 +68,13 @@ import org.isatools.tablib.utils.logging.TabLoggingEventWrapper;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Single entry point for displaying the different stages of the validation from selecting the ISATAB file, status screen
@@ -86,6 +85,7 @@ import java.util.Set;
  */
 
 public abstract class CommonUI extends JLayeredPane {
+    public static final String DATABASE_ERROR = "database error";
     private GenericPanel generic;
 
     protected AppContainer appContainer;
@@ -104,7 +104,7 @@ public abstract class CommonUI extends JLayeredPane {
     private File configDir;
 
     // Loads and validate a submission, the first step for almost all the operations.
-    protected GUIISATABValidator isatabValidator;
+    public GUIISATABValidator isatabValidator;
 
     public CommonUI(final AppContainer appContainer, ApplicationType useAs, String[] options) {
         this.appContainer = appContainer;
@@ -138,7 +138,7 @@ public abstract class CommonUI extends JLayeredPane {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 add(generic, JLayeredPane.DEFAULT_LAYER);
-                add(new GradientPanel(), JLayeredPane.DEFAULT_LAYER + 1);
+//                add(new GradientPanel(), JLayeredPane.DEFAULT_LAYER + 1);
 
                 loadConfigurationUI = new LoadConfigurationPanel();
                 loadConfigurationUI.createGUI();
@@ -164,20 +164,8 @@ public abstract class CommonUI extends JLayeredPane {
                     }
                 });
 
-//                if (isAnimated()) {
-//                    startAnimation();
-//                }
             }
         });
-    }
-
-    protected boolean isAnimated() {
-        for (String option : options) {
-            if (Options.NO_ANIMATION.toString().equalsIgnoreCase(option)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     protected abstract void createLoginScreen();
@@ -187,17 +175,6 @@ public abstract class CommonUI extends JLayeredPane {
     protected abstract void loadToDatabase(BIIObjectStore store, String isatabSubmissionPath, final String report);
 
     protected abstract void showLoaderMenu();
-
-//    private void startAnimation() {
-//        Timer timer = new Timer(125, new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                generic.animate();
-//                generic.repaint();
-//            }
-//        });
-//        timer.start();
-//    }
-
 
     protected void validateFile(final String[] fileLoc) {
 
@@ -221,12 +198,11 @@ public abstract class CommonUI extends JLayeredPane {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
                         appContainer.setGlassPanelContents(createResultPanel(Globals.VALID_ISATAB, Globals.VALIDATE_ANOTHER,
-                                Globals.VALIDATE_ANOTHER_OVER, Globals.EXIT, Globals.EXIT_OVER, isatabValidator.report(true), getValidatorReport().getReport().isEmpty() ? null : getValidatorReport()));
+                                Globals.VALIDATE_ANOTHER_OVER, Globals.EXIT, Globals.EXIT_OVER, isatabValidator.report(true)));
                         progressIndicator.stop();
                     }
                 });
             } else if (useAs == ApplicationType.CONVERTER) {
-
                 instantiateConversionUtilPanel(fileLoc[0]);
                 progressIndicator.stop();
             } else {
@@ -242,20 +218,102 @@ public abstract class CommonUI extends JLayeredPane {
                 threads[0].start();
             }
         } else {
-            appContainer.setGlassPanelContents(createResultPanel(Globals.INVALID_ISATAB, Globals.VALIDATE_ANOTHER,
-                    Globals.VALIDATE_ANOTHER_OVER, Globals.EXIT, Globals.EXIT_OVER, null, getValidatorReport()));
+
+            Map<String, List<ErrorMessage>> errorMessages = getErrorMessages(
+                    isatabValidator.getLog());
+            displayValidationErrorsAndWarnings(errorMessages);
+
             progressIndicator.stop();
         }
         appContainer.validate();
     }
 
-    protected ErrorReport getValidatorReport() {
-        List<TabLoggingEventWrapper> logResult = isatabValidator.getLog();
+    private void displayValidationErrorsAndWarnings(Map<String, List<ErrorMessage>> fileToErrors) {
+        List<ISAFileErrorReport> errors = createErrorReport(fileToErrors);
 
-        return new ErrorReport(logResult, getAllowedLogLevels());
+        if (fileToErrors.size() > 0) {
+            ErrorReporterView view = new ErrorReporterView(errors);
+            view.setPreferredSize(new Dimension(400, 420));
+            view.createGUI();
+            view.add(createReturnToMenuOrExitPanel(), BorderLayout.SOUTH);
+            appContainer.setGlassPanelContents(view);
+            appContainer.validate();
+        }
     }
 
-    protected Set<Level> getAllowedLogLevels() {
+    private List<ISAFileErrorReport> createErrorReport(Map<String, List<ErrorMessage>> fileToErrors) {
+        List<ISAFileErrorReport> errors = new ArrayList<ISAFileErrorReport>();
+        for (String fileName : fileToErrors.keySet()) {
+            errors.add(new ISAFileErrorReport(fileName,
+                    FileType.INVESTIGATION, fileToErrors.get(fileName)));
+        }
+        return errors;
+    }
+
+    private JPanel createReturnToMenuOrExitPanel() {
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+        buttonPanel.setOpaque(false);
+
+        final JLabel backButton = new JLabel(useAs == ApplicationType.VALIDATOR
+                ? Globals.VALIDATE_ANOTHER : useAs == ApplicationType.CONVERTER
+                ? Globals.CONVERT_ANOTHER : Globals.LOAD_ANOTHER, JLabel.LEFT);
+
+        backButton.addMouseListener(new MouseAdapter() {
+
+            public void mousePressed(MouseEvent event) {
+                backButton.setIcon(useAs == ApplicationType.VALIDATOR
+                        ? Globals.VALIDATE_ANOTHER : useAs == ApplicationType.CONVERTER
+                        ? Globals.CONVERT_ANOTHER : Globals.LOAD_ANOTHER);
+                if (backButton.getIcon() == Globals.BACK_MAIN) {
+                    showLoaderMenu();
+                } else {
+                    appContainer.setGlassPanelContents(selectISATABUI);
+                }
+
+                appContainer.validate();
+            }
+
+            public void mouseEntered(MouseEvent event) {
+                backButton.setIcon(useAs == ApplicationType.VALIDATOR
+                        ? Globals.VALIDATE_ANOTHER_OVER : useAs == ApplicationType.CONVERTER
+                        ? Globals.CONVERT_ANOTHER_OVER : Globals.LOAD_ANOTHER_OVER);
+            }
+
+            public void mouseExited(MouseEvent event) {
+                backButton.setIcon(useAs == ApplicationType.VALIDATOR
+                        ? Globals.VALIDATE_ANOTHER : useAs == ApplicationType.CONVERTER
+                        ? Globals.CONVERT_ANOTHER : Globals.LOAD_ANOTHER);
+            }
+        });
+
+        buttonPanel.add(backButton, BorderLayout.WEST);
+
+        final JLabel exitButton = new JLabel(Globals.EXIT, JLabel.RIGHT);
+
+        exitButton.addMouseListener(new MouseAdapter() {
+
+            public void mousePressed(MouseEvent event) {
+                appContainer.setVisible(false);
+                appContainer.dispose();
+                System.exit(0);
+            }
+
+            public void mouseEntered(MouseEvent event) {
+                exitButton.setIcon(Globals.EXIT_OVER);
+            }
+
+            public void mouseExited(MouseEvent event) {
+                exitButton.setIcon(Globals.EXIT);
+            }
+        });
+
+        buttonPanel.add(exitButton, BorderLayout.EAST);
+
+        return buttonPanel;
+    }
+
+
+    public Set<Level> getAllowedLogLevels() {
         Set<Level> displayedLogLevels = new HashSet<Level>();
         displayedLogLevels.add(Level.WARN);
         displayedLogLevels.add(Level.ERROR);
@@ -295,7 +353,7 @@ public abstract class CommonUI extends JLayeredPane {
      * @param text -  message to show when validating or loading...
      * @return - JPanel
      */
-    protected JPanel createProgressScreen(String text) {
+    public JPanel createProgressScreen(String text) {
 
         JPanel loadingPanel = new JPanel();
         loadingPanel.setLayout(new BoxLayout(loadingPanel, BoxLayout.PAGE_AXIS));
@@ -310,12 +368,9 @@ public abstract class CommonUI extends JLayeredPane {
 
     }
 
-    protected JPanel createResultPanel(ImageIcon mainImage, final ImageIcon anotherImage, final ImageIcon anotherImageOver, final ImageIcon exitImage, final ImageIcon exitImageOver, final String message) {
-        return createResultPanel(mainImage, anotherImage, anotherImageOver, exitImage, exitImageOver, message, null);
-    }
-
-    protected JPanel createResultPanel(ImageIcon mainImage, final ImageIcon anotherImage, final ImageIcon anotherImageOver, final ImageIcon exitImage, final ImageIcon exitImageOver, final String message, ErrorReport report) {
-        final TaskResultPanel resultPanel = new TaskResultPanel(mainImage, anotherImage, anotherImageOver, exitImage, exitImageOver, message, report);
+    public JPanel createResultPanel(ImageIcon mainImage, final ImageIcon anotherImage, final ImageIcon anotherImageOver, final ImageIcon exitImage, final ImageIcon exitImageOver, final String message) {
+        final TaskResultPanel resultPanel = new TaskResultPanel(mainImage, anotherImage, anotherImageOver, exitImage, exitImageOver, message, isatabValidator != null
+                ? createErrorReport(getErrorMessages(isatabValidator.getLog())) : null);
 
         resultPanel.addPropertyChangeListener("back", new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
@@ -324,7 +379,6 @@ public abstract class CommonUI extends JLayeredPane {
                 } else {
                     appContainer.setGlassPanelContents(selectISATABUI);
                 }
-
                 appContainer.validate();
             }
         });
@@ -339,6 +393,33 @@ public abstract class CommonUI extends JLayeredPane {
 
         resultPanel.createGUI();
         return resultPanel;
+    }
+
+    public Map<String, List<ErrorMessage>> getErrorMessages(List<TabLoggingEventWrapper> logEvents) {
+        Map<String, List<ErrorMessage>> fileToErrors = new HashMap<String, List<ErrorMessage>>();
+
+        for (TabLoggingEventWrapper event : logEvents) {
+            String fileName = ErrorUtils.extractFileInformation(event.getLogEvent());
+
+            if (fileName != null) {
+                if (event.getLogEvent().getLevel().toInt() >= Level.WARN_INT) {
+                    if (!fileToErrors.containsKey(fileName)) {
+                        fileToErrors.put(fileName, new ArrayList<ErrorMessage>());
+                    }
+                    fileToErrors.get(fileName).add(createErrorMessage(event));
+                }
+            } else if(event.getFormattedMessage().contains("The accession")) {
+                // we have a different type of error
+                if (!fileToErrors.containsKey(DATABASE_ERROR))
+                    fileToErrors.put(DATABASE_ERROR, new ArrayList<ErrorMessage>());
+                fileToErrors.get(DATABASE_ERROR).add(new ErrorMessage(ErrorLevel.ERROR, event.getLogEvent().getMessage().toString()));
+            }
+        }
+        return fileToErrors;
+    }
+
+    private ErrorMessage createErrorMessage(TabLoggingEventWrapper event) {
+       return new ErrorMessage(event.getLogEvent().getLevel() == Level.WARN ? ErrorLevel.WARNING : ErrorLevel.ERROR, event.getLogEvent().getMessage().toString());
     }
 
 }

@@ -114,8 +114,9 @@ public class AssayGroupTabMapper extends ClassTabMapper<AssayGroup> implements S
             if (epAcc == null) {
                 // If we don't have an accession, try to get the term from predefined entries.
                 measurement = AssayTypeEntries.getMeasurementTypeFromLabel(epLabel);
-                if (measurement == null) {
-                    throw new TabInvalidValueException(i18n.msg("isatab_unknwon_measurement_type", epLabel));
+
+                if (measurement == null ) {
+                     throw new TabInvalidValueException(i18n.msg("isatab_unknown_measurement_type", epLabel));
                 }
             } else {
                 measurement = mappingUtils.createOntologyEntry(
@@ -155,7 +156,7 @@ public class AssayGroupTabMapper extends ClassTabMapper<AssayGroup> implements S
                 // If we don't have an accession, try to get the term from predefined entries.
                 technology = AssayTypeEntries.getAssayTechnologyFromLabel(techLabel);
                 if (technology == null) {
-                    throw new TabInvalidValueException(i18n.msg("isatab_unknwon_assay_type", techLabel));
+                    throw new TabInvalidValueException(i18n.msg("isatab_unknown_assay_type", techLabel));
                 }
             } else {
                 technology = mappingUtils.createOntologyEntry(
@@ -165,7 +166,6 @@ public class AssayGroupTabMapper extends ClassTabMapper<AssayGroup> implements S
                         "Study Assay Technology Type Term Source REF",
                         AssayTechnology.class
                 );
-
             }
         }
 

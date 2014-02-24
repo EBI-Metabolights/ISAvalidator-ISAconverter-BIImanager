@@ -49,6 +49,9 @@
 package org.isatools.effects;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.Collection;
 import java.util.Vector;
@@ -56,10 +59,10 @@ import java.util.Vector;
 
 public class UIHelper {
 
-    public static final Color BG_COLOR = new Color(20, 20, 20);
+    public static final Color BG_COLOR = Color.WHITE;
     public static final Color DARK_GREEN_COLOR = new Color(0, 104, 56);
     public static final Color GREY_COLOR = new Color(51, 51, 51);
-    public static final Color LIGHT_GREY_COLOR = new Color(153, 153, 153);
+    public static final Color LIGHT_GREY_COLOR = new Color(51, 51, 51);
     public static final Color RED_COLOR = new Color(191, 30, 45);
     public static final Color TRANSPARENT_RED_COLOR = new Color(191, 30, 45, 50);
     public static final Color LIGHT_GREEN_COLOR = new Color(140, 198, 63);
@@ -203,6 +206,38 @@ public class UIHelper {
     public static Dimension getScreenSize() {
 
         return Toolkit.getDefaultToolkit().getScreenSize();
+    }
+
+    public static JPanel createListContainer(javax.swing.JList list, String title, ListCellRenderer renderer) {
+        list.setCellRenderer(renderer);
+
+        JScrollPane listScroller = new JScrollPane(list,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        listScroller.setBorder(new EmptyBorder(0, 0, 0, 0));
+        listScroller.getViewport().setOpaque(false);
+        listScroller.setOpaque(false);
+
+        JPanel listPanel = new JPanel(new BorderLayout());
+        listPanel.setOpaque(false);
+        listPanel.setBorder(new TitledBorder(
+                new RoundedBorder(UIHelper.LIGHT_GREEN_COLOR, 4),
+                title, TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION, UIHelper.VER_12_BOLD,
+                UIHelper.LIGHT_GREY_COLOR));
+
+        if (list instanceof ExtendedJList) {
+            ((ExtendedJList) list).getFilterField().setBorder(new LineBorder(UIHelper.LIGHT_GREY_COLOR, 1, true));
+            ((ExtendedJList) list).getFilterField().setCaretColor(UIHelper.LIGHT_GREY_COLOR);
+            ((ExtendedJList) list).getFilterField().setOpaque(false);
+            UIHelper.renderComponent(((ExtendedJList) list).getFilterField(), UIHelper.VER_11_BOLD, UIHelper.LIGHT_GREY_COLOR, false);
+
+            listPanel.add(((ExtendedJList) list).getFilterField(), BorderLayout.NORTH);
+        }
+        listPanel.add(listScroller, BorderLayout.CENTER);
+        listPanel.setPreferredSize(new Dimension(250, 200));
+
+        return listPanel;
     }
 
 }
