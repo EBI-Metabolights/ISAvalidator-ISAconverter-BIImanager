@@ -124,15 +124,30 @@ public class SimpleManager {
     	return loadISAtab(isatabFile, userName, shouldIndex);
     }
 
-    public GUIInvokerResult loadISAtab(String isatabFile, String configurationDirectory, String userName) throws Exception {
 
+    public GUIInvokerResult loadISAtab(String isatabFile, String configurationDirectory, String userName) throws Exception {
         if (loadConfiguration(configurationDirectory)) {
             return loadISAtab(isatabFile, userName, true);
         } else {
             log.info("No configuration directory found...");
         	return GUIInvokerResult.WARNING;
         }
+    }
 
+    public void validateISAtab(String isatabFile, String configurationDirectory) {
+        if (loadConfiguration(configurationDirectory)) {
+            GUIISATABValidator isatabValidator = new GUIISATABValidator();
+            GUIInvokerResult validationResult = isatabValidator.validate(isatabFile);
+            if (validationResult == GUIInvokerResult.SUCCESS) {
+                System.out.println("Validation successful!");
+                log.info("Validation successful...");
+            } else {
+                System.err.println("Validation unsuccessful...");
+                log.error("Validation unsuccessful...");
+            }
+        } else {
+            log.info("No configuration directory found...");
+        }
     }
 
     /**
@@ -153,24 +168,6 @@ public class SimpleManager {
         lastLog = isatabValidator.getLog();
 
         return result;
-    }
-
-
-    public void validateISAtab(String isatabFile, String configurationDirectory) {
-        if (loadConfiguration(configurationDirectory)) {
-            GUIISATABValidator isatabValidator = new GUIISATABValidator();
-
-            GUIInvokerResult validationResult = isatabValidator.validate(isatabFile);
-            if (validationResult == GUIInvokerResult.SUCCESS) {
-                System.out.println("Validation successful!");
-                log.info("Validation successful...");
-            } else {
-                System.err.println("Validation unsuccessful...");
-                log.error("Validation unsuccessful...");
-            }
-        } else {
-            log.info("No configuration directory found...");
-        }
     }
 
     public GUIInvokerResult validateISAtabWithConfig(String isatabFile, String configurationDirectory) {
@@ -198,7 +195,6 @@ public class SimpleManager {
     public GUIInvokerResult loadISAtab(String isatabFile, String userName, Boolean shouldIndex) throws Exception {
 
         GUIISATABValidator isatabValidator = new GUIISATABValidator();
-
         GUIInvokerResult validationResult = isatabValidator.validate(isatabFile);
 
         if (validationResult == GUIInvokerResult.SUCCESS) {
@@ -215,7 +211,6 @@ public class SimpleManager {
 
                 // using this call, we can get all objects of type Study from the BIIObjectStore.
                 Collection<Study> studies = isatabValidator.getStore().valuesOfType(Study.class);
-
                 Set<String> accessions = new HashSet<String>();
 
                 for (Study study : studies) {
@@ -223,8 +218,7 @@ public class SimpleManager {
                 }
 
                 // pconesa add status property
-                changeStudyPermissions(status, userName,
-                        accessions.toArray(new String[accessions.size()]));
+                changeStudyPermissions(status, userName,  accessions.toArray(new String[accessions.size()]));
 
                 log.info("Loading completed and reindexing performed");
             }
@@ -241,19 +235,24 @@ public class SimpleManager {
 
     }
 
+
+    public void closeEntityManager() {
+        if (sharedEntityManager != null) {
+            sharedEntityManager.close();
+        }
+    }
+
     /**
      * Initial version of ISAtab reloading code. Can be extended to take in the configuration directory as well
      *
-     * @param studyId    - ID of study to unload
-     * @param isatabFile - directory for ISAtab to be reloaded
-     * @param userName   - username of submitter to be assigned as the owner of the submission
+     * @param studyId                - ID of study to unload
+     * @param isatabFile             - directory for ISAtab to be reloaded
+     * @param configurationDirectory - where the configuration files are
+     * @param userName               - username of submitter to be assigned as the owner of the submission
      */
-    public void reloadISAtab(String studyId, String isatabFile, String configurationDirectory, String userName) throws Exception{
-
+    public void reloadISAtab(String studyId, String isatabFile, String configurationDirectory, String userName) throws Exception {
         loadConfiguration(configurationDirectory);
-
         reloadISAtab(studyId, isatabFile, userName);
-
     }
 
     /**
@@ -263,17 +262,19 @@ public class SimpleManager {
      * @param isatabFile - directory for ISAtab to be reloaded
      * @param userName   - username of submitter to be assigned as the owner of the submission
      */
-    public GUIInvokerResult reloadISAtab(String studyId, String isatabFile, String userName) throws Exception{
+    public GUIInvokerResult reloadISAtab(String studyId, String isatabFile, String userName) throws Exception {
 
         // Get the result of the unload, after this call we should have the lastlog and an entity manager.
     	GUIInvokerResult result = unLoadISAtab(Collections.singleton(studyId));
 
     	if(result == GUIInvokerResult.SUCCESS) {
+            if (sharedEntityManager != null) {
             // continue
-            result = loadISAtab(isatabFile, userName, true);
-        }else{
+                result = loadISAtab(isatabFile, userName, true);
+            } else {
         	//Nothing...it has been logged inside unLoadISATab method
 
+            }
         }
 
     	return result;
@@ -413,6 +414,7 @@ public class SimpleManager {
 
     public GUIInvokerResult unLoadISAtab(String Studylist){
     	return unLoadISAtab(Study2Set(Studylist));
+
     }
 
     private boolean loadConfiguration(String configuration) {
