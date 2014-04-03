@@ -236,13 +236,13 @@ public class AbstractImportLayerShellCommand {
             return _configPath;
         }
 
-        
+
         //pconesa: Try to look first in the root folder
         _configPath =AbstractImportLayerShellCommand.class.getClassLoader().getResource("").getPath() + "config/";
-        
+
         System.out.println("Initial config path is :" + _configPath);
-        
-        
+
+
         //If this path do not exists...
         if (!new File(_configPath).exists()){
 
@@ -252,17 +252,17 @@ public class AbstractImportLayerShellCommand {
             );
 
         }
-        
-        
+
+
         if (_configPath.length() > 0 && !_configPath.endsWith("/")) {
             _configPath += "/";
         }
-        
+
         System.out.println("Final config path is :" + _configPath);
         return _configPath;
     }
     public static void setDBConfigPath(String newConfigPath){
-    	System.out.println("Config Path mannualy setted: " + newConfigPath);
+    	System.out.println("Config Path manually set to: " + newConfigPath);
     	_configPath = newConfigPath;
     }
 
