@@ -108,7 +108,7 @@ public class ISATABUnloader {
             StudyDAO dao = daoFactory.getStudyDAO();
             Study study = dao.getByAcc(studyAcc);
             if (study == null) {
-                log.warn("Study with accession '" + studyAcc + "' not found, no undeletion performed.");
+                log.warn("Study with accession '" + studyAcc + "' not found, no deletion performed.");
                 return null;
             }
             studies.add(study);

@@ -280,7 +280,7 @@ public class AbstractImportLayerShellCommand {
             File hibCfgFile = new File(hibCfgPath);
             System.out.println(hibCfgFile.getAbsolutePath());
             Properties props = new Properties();
-            props.load(new FileInputStream(hibCfgFile));
+            props.load(new FileInputStream(hibCfgFile));//TODO, add jndi
             System.out.println("Loaded properties");
 
             for(String property : props.stringPropertyNames()) {

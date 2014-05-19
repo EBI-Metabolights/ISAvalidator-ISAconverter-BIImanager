@@ -1,10 +1,8 @@
 package org.isatools.tablib.utils;
 
+import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
@@ -27,18 +25,18 @@ public class HeaderCsvReader {
     protected Map<String, Integer> headers = new HashMap<String, Integer>();
     private String hline[];
     private CSVReader csvr;
-    
-    
+
+
 	public HeaderCsvReader(Reader reader) throws IOException {
-			
-    	this(reader, CSVReader.DEFAULT_SEPARATOR , CSVReader.DEFAULT_QUOTE_CHARACTER, 0);	
+
+    	this(reader, CSVParser.DEFAULT_SEPARATOR , CSVParser.DEFAULT_QUOTE_CHARACTER, 0);
 	}
 	public HeaderCsvReader(Reader reader, char separator, char quotechar, int line) throws IOException{
-		
+
 		csvr = new CSVReader(reader, separator, quotechar, line);
 		readHeaders();
 	}
-   
+
     /**
      * First read the headers line, then call super.initFirstOject()
      */
@@ -50,12 +48,12 @@ public class HeaderCsvReader {
         for (int icol = 0; icol < hline.length; icol++) {
             headers.put(hline[icol], icol);
         }
-        
+
     }
     public String[] readNext() throws IOException{
     	return csvr.readNext();
     }
-    
+
 
     /**
      * Gets the line value corresponding to the given header
