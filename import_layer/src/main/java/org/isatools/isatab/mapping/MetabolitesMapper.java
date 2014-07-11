@@ -60,13 +60,11 @@ public class MetabolitesMapper {
 
     	// Get a reader of the assay file
     	BufferedReader reader;
-    	String maf= "";
+    	String maf = "";
 		try {
 			reader = new BufferedReader(new FileReader(new File(assayFilePath)));
 	    	// Create a generic CSV reader for Tabular format
 	    	HeaderCsvReader hcsvr = new HeaderCsvReader((Reader)reader , '\t' , '"' , 0);
-
-
 
 	    	// Look for the metabolight identification file
 	    	while (maf.equals("")){
@@ -75,16 +73,15 @@ public class MetabolitesMapper {
 	    		maf = hcsvr.getValue(line, "Metabolite Assignment File");
 	    	}
 
-
 		} catch (Exception e) {
 			// There's no metabolite file.
+            return "";
 
-		} finally{
+		} //finally {
 			//reader.close();
-		}
+		//}
 
 		return maf;
-
 
     }
 

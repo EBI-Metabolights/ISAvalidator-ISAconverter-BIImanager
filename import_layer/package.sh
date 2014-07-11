@@ -4,7 +4,7 @@
 
 #MVNOPTS="--offline"
 
-ISAversion=1.6.8
+ISAversion=1.6.9
 MVN=/usr/local/apache-maven-2.2.1/bin/mvn
 #MVN=/usr/bin/mvn
 

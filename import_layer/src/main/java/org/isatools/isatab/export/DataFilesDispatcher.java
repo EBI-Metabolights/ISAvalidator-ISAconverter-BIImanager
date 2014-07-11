@@ -252,7 +252,7 @@ public class DataFilesDispatcher {
                 File targetFile = new File(targetPath + "/" + (new File(sourceFilePath)).getName());
 
                 if (!srcFile.exists()) {
-                    log.info("WARNING: Source file '" + sourceFilePath + "' / '" + fieldHeader + "' not found");
+                    log.error("ERROR: Source file '" + sourceFilePath + "' / '" + fieldHeader + "' not found");
                 } else {
 
                     if (targetFile.exists() && targetFile.lastModified() == srcFile.lastModified()) {

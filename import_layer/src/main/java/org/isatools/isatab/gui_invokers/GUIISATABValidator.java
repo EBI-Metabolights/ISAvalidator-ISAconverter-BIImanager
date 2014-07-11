@@ -97,6 +97,7 @@ public class GUIISATABValidator extends AbstractGUIInvoker {
             ISATABValidator validator = new ISATABValidator(isatabInstance);
             System.out.println("Now validating..."+ isatabSubmissionPath);
             GUIInvokerResult result = validator.validate();
+
             if (GUIInvokerResult.WARNING == result) {
                 vlog.warn("ISA-Configurator Validation reported problems, see the messages above or the log file");
             }
