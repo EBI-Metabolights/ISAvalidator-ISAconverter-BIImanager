@@ -4,10 +4,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.isatools</groupId>
-    <artifactId>import_layer_MTBLS</artifactId>
+    <artifactId>import_layer_MTBLS_API</artifactId>
     <packaging>jar</packaging>
-    <version>1.6.9-SNAPSHOT</version>
-    <name>ISA Import Layer and Command Line Tools</name>
+    <version>1.0-SNAPSHOT</version>
+    <name>ISA Import Layer and Command Line Tools. Adaptation to be used as an "~API"</name>
     <url>http://isatab.sf.net/</url>
     <description>
         The library that implements validation, conversion and
@@ -31,6 +31,14 @@
         the POM and causes a lot of trouble. In practice they're always overridden by the profiles.
       -->
 
+        <jdbc.driverClassName>null</jdbc.driverClassName>
+        <jdbc.username>null</jdbc.username>
+        <jdbc.password>null</jdbc.password>
+        <jdbc.url>null</jdbc.url>
+        <dbunit.operation.type>null</dbunit.operation.type>
+        <dbunit.schema>null</dbunit.schema>
+        <maven.test.skip>true</maven.test.skip>
+
         <jdbc.groupId>com.h2database</jdbc.groupId>
         <jdbc.artifactId>h2</jdbc.artifactId>
         <jdbc.version>1.0.76</jdbc.version>
@@ -38,6 +46,14 @@
     </properties>
 
     <repositories>
+        <repository>
+            <id>chebi-repo-snapshot</id>
+            <name>ChEBI Repository</name>
+            <url>http://www.ebi.ac.uk/~biobabel/maven2_repo</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>lutin</id>
             <url>http://lutinbuilder.labs.libre-entreprise.org/maven2/net/sourceforge/</url>
@@ -91,11 +107,11 @@
             <version>1.04</version>
         </dependency>
 
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>log4j</groupId>-->
+            <!--<artifactId>log4j</artifactId>-->
+            <!--<version>1.2.16</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>xerces</groupId>
@@ -249,15 +265,15 @@
             <!--  DBUnit needs some binder for the logger API -->
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.5.6</version>
+            <version>1.7.7</version>
         </dependency>
 
-        <dependency>
-            <!--  DBUnit needs some binder for the logger API -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--&lt;!&ndash;  DBUnit needs some binder for the logger API &ndash;&gt;-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>slf4j-log4j12</artifactId>-->
+            <!--<version>1.5.6</version>-->
+        <!--</dependency>-->
 
         <!-- hibernate -->
         <dependency>
@@ -292,7 +308,6 @@
 
 
     </dependencies>
-
 
     <build>
 
@@ -504,16 +519,16 @@
              you'll find the report in target/site
              Just issue maven test site to have the report printed under target/site
          -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.7.2</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.7.2</version>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-surefire-report-plugin</artifactId>-->
+                <!--<version>2.7.2</version>-->
+            <!--</plugin>-->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-javadoc-plugin</artifactId>-->
+                <!--<version>2.7.2</version>-->
+            <!--</plugin>-->
         </plugins>
     </reporting>
 
@@ -580,16 +595,20 @@
 
     <distributionManagement>
         <repository>
-            <id>oerc-repo</id>
-            <name>OeRC Maven repository</name>
-            <url>http://frog.oerc.ox.ac.uk:8080/nexus-2.1.2/content/repositories/releases/</url>
+            <id>chebi-repo</id>
+            <name>ChEBI Internal Repository</name>
+            <url>scp://prod.ebi.ac.uk/ebi/sp/pro1/chebi/maven2_repo</url>
         </repository>
-
         <snapshotRepository>
-            <id>oerc-snapshot</id>
-            <name>OeRC Snapshot Repo</name>
-            <url>http://frog.oerc.ox.ac.uk:8080/nexus-2.1.2/content/repositories/snapshots</url>
+            <uniqueVersion>false</uniqueVersion>
+            <id>chebi-repo</id>
+            <name>ChEBI Internal Repository</name>
+            <url>scp://prod.ebi.ac.uk:/ebi/sp/pro1/chebi/maven2_repo</url>
         </snapshotRepository>
+        <site>
+            <name>chebi</name>
+            <id>prod.ebi.ac.uk</id>
+            <url>scp://prod.ebi.ac.uk:/ebi/extserv/seqdb/internal/seqdb/projects/chebi/chebi-prg/${project.artifactId}</url>
+        </site>
     </distributionManagement>
-
 </project>
